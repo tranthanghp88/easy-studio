@@ -1,0 +1,263 @@
+*{box-sizing:border-box}html,body,#root{min-height:100%}body{margin:0;font-family:Inter,"Be Vietnam Pro","Segoe UI Variable","Segoe UI",Arial,sans-serif;background:#f5f7fb;color:#071a3a}button,input,textarea,select{font-family:inherit}.appLight{min-height:100vh;display:grid;grid-template-columns:360px 1fr;background:linear-gradient(135deg,#f8fbff 0%,#f3f6fb 48%,#f7f3ff 100%)}.leftRail{height:100vh;position:sticky;top:0;overflow:auto;padding:26px 22px 28px;background:rgba(248,251,255,.8);border-right:1px solid #dfe7f4;scrollbar-width:thin;scrollbar-color:#bac8dd transparent}.leftRail::-webkit-scrollbar,.rightWorkspace::-webkit-scrollbar{width:9px}.leftRail::-webkit-scrollbar-track,.rightWorkspace::-webkit-scrollbar-track{background:transparent}.leftRail::-webkit-scrollbar-thumb,.rightWorkspace::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#c8d5ea,#aebbd1);border:3px solid transparent;border-radius:999px;background-clip:content-box}.leftRail::-webkit-scrollbar-thumb:hover,.rightWorkspace::-webkit-scrollbar-thumb:hover{background:#9eb0ca;border:2px solid transparent;background-clip:content-box}.appBrand{display:flex;gap:12px;align-items:center;margin-bottom:18px}.brandIcon{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#8b5cf6);color:white;font-weight:900;display:grid;place-items:center;box-shadow:0 18px 35px rgba(74,96,255,.22)}.appBrand p,.titleLogo{margin:0;color:#2363ff;font-weight:950;letter-spacing:.18em;font-size:12px}.appBrand h1{font-size:19px;margin:3px 0 0}.leftCard,.scriptPanel,.settingsCard,.previewPanel,.progressPanel{background:rgba(255,255,255,.94);border:1px solid #dce6f5;border-radius:24px;box-shadow:0 18px 40px rgba(25,45,90,.08)}.leftCard{padding:18px;margin-bottom:18px}.leftCard h2,.scriptPanel h2,.settingsCard h2,.previewPanel h2,.progressPanel h2{font-size:18px;margin:0 0 10px}.subtle{color:#68768e;font-size:14px;margin:0}.hint{font-size:13px;color:#6d7b91;margin:10px 0 0}.fieldLabel{display:block;margin:14px 0 8px;color:#42526d;font-size:14px;font-weight:750}.rowBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.rowBtns button,.plainBtn{border:1px solid #d8e2f0;background:white;border-radius:15px;padding:11px 14px;font-weight:850;color:#112447;cursor:pointer;box-shadow:0 10px 24px rgba(35,60,110,.06)}.primarySoft{background:linear-gradient(135deg,#4f7cff,#8b5cf6)!important;color:white!important;border:0!important}.cardTop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.roundMini{width:42px;height:42px;border-radius:16px;border:1px solid #dfe7f3;background:white;font-size:18px;cursor:pointer}.checkLine,.bgmToggle{display:flex;align-items:center;gap:10px;font-weight:800}.checkLine input,.bgmToggle input{accent-color:#537dff}.presetGrid{display:grid;gap:10px;margin:14px 0}.presetGrid button{border:1px dashed #cfd9e8;background:#f8fbff;border-radius:18px;padding:12px;text-align:left;cursor:pointer}.presetGrid button b{display:block;color:#0c1d3d}.presetGrid button span{display:block;color:#718099;font-size:13px;margin-top:4px}.presetGrid button.active{border:1px solid #9bb7ff;background:#eef4ff;box-shadow:inset 0 0 0 1px #c9d8ff}.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.seg button{border:1px solid #d7e1ef;background:white;border-radius:14px;padding:11px;font-weight:850;cursor:pointer}.seg button.active{background:#5b8cff;color:white;border-color:#5b8cff}.fullSelect,.nameInput{width:100%;border:1px solid #d5deeb;border-radius:14px;background:#f8fbff;padding:12px;outline:none;font-weight:700}.rangeLine{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.rangeLine input{accent-color:#5b8cff}.rangeLine span{font-size:13px;font-weight:850;color:#3d5272;background:#eef4ff;border-radius:999px;padding:7px 10px}.rightWorkspace{height:100vh;overflow:auto;padding:28px 34px 44px;position:relative}.topHome{position:absolute;right:34px;top:24px;width:56px;height:56px;border:1px solid #bcd0ff;border-radius:20px;color:#1d6cf2;background:#edf5ff;display:grid;place-items:center;font-size:34px;font-weight:900;box-shadow:0 18px 34px rgba(65,105,225,.12)}.titleLogo{text-align:center}.mainTitle{text-align:center;margin:8px 0 22px;font-size:28px;letter-spacing:-.03em}.scriptPanel{padding:22px}.scriptHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:14px}.headTools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.charPill,.percent,.pillBtn,.bgmToggle{border-radius:999px;background:#f0f4fa;color:#31435d;padding:9px 14px;font-weight:850;border:0}.pillBtn{cursor:pointer;background:#e9fff4;color:#05774d;border:1px solid #c5f0dd}.scriptPanel textarea{width:100%;min-height:340px;border:1px solid #adbbcf;border-radius:18px;background:white;color:#17213a;padding:18px 20px;font-size:17px;line-height:1.65;resize:vertical;outline:none}.scriptPanel textarea:focus{border-color:#5b8cff;box-shadow:0 0 0 4px rgba(91,140,255,.16)}.scriptMeta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.scriptMeta span{border-radius:999px;background:#f5f7fb;color:#66758d;padding:8px 12px;font-size:13px;font-weight:650}.actionBar{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.actionBar button{border:0;border-radius:18px;padding:14px 24px;background:linear-gradient(135deg,#426cf5,#7b3ff2);color:white;font-weight:950;font-size:16px;box-shadow:0 16px 35px rgba(83,86,240,.22);cursor:pointer}.actionBar .mainCta{font-size:18px;background:linear-gradient(135deg,#2f67ff,#7d3ff1)}.actionBar button:nth-child(2){background:linear-gradient(135deg,#64748b,#475569)}.actionBar button:nth-child(3){background:linear-gradient(135deg,#22a06b,#14b8a6)}.actionBar button:nth-child(4){background:linear-gradient(135deg,#4f46e5,#6d28d9)}button:disabled{opacity:.5;cursor:not-allowed}.settingsCard,.previewPanel,.progressPanel{padding:20px;margin-top:16px}.compactPanel{border-color:#cbf1df}.settingsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.settingsGrid label{display:grid;gap:8px;color:#34445f;font-weight:750}.settingsGrid .span2{grid-column:1/-1}.settingsGrid input,.settingsGrid select{border:1px solid #d5deeb;border-radius:14px;background:#f8fbff;padding:12px;outline:none}.settingsGrid input[type='range']{padding:0;accent-color:#5b8cff}.keyManagerPanel{border-color:#c9d7ff}.keyStatusRow{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px}.keyStatusRow span{border-radius:999px;background:#f2f5fb;padding:9px 12px;font-weight:850;color:#4b5d78}.keyStatusRow .ok{background:#e8fff2;color:#087647}.keyStatusRow .warn{background:#fff3e1;color:#a35b00}.previewPanel{display:grid;grid-template-columns:1fr minmax(340px,520px) auto;gap:16px;align-items:center;border-color:#bfe7d1;background:linear-gradient(180deg,#ffffff,#f7fffb)}.previewPanel p{margin:4px 0 0;color:#67768d}.previewPanel audio{width:100%}.progressHeader{display:flex;align-items:center;justify-content:space-between;gap:14px}.percent{display:flex;align-items:center;gap:9px}.percent i{display:inline-block;width:11px;height:11px;border-radius:999px;background:#8cb6ff;box-shadow:0 0 0 5px rgba(140,182,255,.16)}.stepRow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.stepRow div{border:1px solid #dbe5f2;background:#f7faff;color:#8a99b1;border-radius:13px;padding:11px 14px;font-weight:800}.stepRow div.active{background:#eef4ff;color:#2857db;border-color:#b8caff}.bar{height:20px;background:#e6edf6;border-radius:999px;margin-top:14px;overflow:hidden;box-shadow:inset 0 2px 7px rgba(71,85,105,.12)}.bar span{height:100%;display:block;border-radius:999px;background:linear-gradient(90deg,#5b8cff,#8b5cf6,#22c55e);transition:width .45s ease;position:relative}.bar span:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.55) 45%,transparent 75%);animation:shine 1.7s linear infinite}.infoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.infoGrid div{background:#f7f9fd;border-radius:14px;padding:13px 15px;color:#60718b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.infoGrid b{color:#102244}.logBox{margin-top:12px;border-radius:16px;background:#fbfcff;border:1px solid #e4ebf5;padding:10px 14px;min-height:50px}.logBox p{margin:6px 0;color:#50617a;font-weight:650}.logBox .err{color:#dc2626}@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@media(max-width:1100px){.appLight{grid-template-columns:1fr}.leftRail{position:relative;height:auto}.rightWorkspace{height:auto}.previewPanel{grid-template-columns:1fr}.settingsGrid,.infoGrid{grid-template-columns:1fr}.topHome{display:none}}
+
+/* Phase 6 polish fixes */
+.leftRail{overflow:hidden;padding:22px 20px}.compactLeft{padding:14px 16px;margin-bottom:14px}.compactLeft h2{margin-bottom:8px}.compactLeft .fieldLabel{margin:10px 0 6px}.compactLeft .presetGrid{gap:8px;margin:8px 0 10px}.compactLeft .presetGrid button{padding:10px 12px;border-radius:15px}.compactLeft .presetGrid button span{font-size:12px}.noCaret{display:block}.tight{margin-top:8px}.tight button{padding:10px 12px}.pillBtn:disabled{filter:grayscale(1);opacity:.45}.modalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.25);z-index:50;display:grid;place-items:center;padding:24px}.modalCard{width:min(720px,92vw);background:#fff;border:1px solid #dce6f5;border-radius:24px;box-shadow:0 30px 90px rgba(15,23,42,.25);padding:22px}.fileSettings{width:min(620px,92vw)}.bgmModal{width:min(760px,92vw)}.cleanProgress .logBox{display:none}.cleanProgress{padding-bottom:20px}.cleanProgress .infoGrid{grid-template-columns:1fr 1fr 1.2fr}.oldKeyStyle{border-color:#1f2937;border-radius:18px;box-shadow:none;background:#fff}.keyHeader{display:grid;grid-template-columns:1fr 230px auto;gap:12px;align-items:start}.lastKeyBox{border:1px solid #dce6f5;border-radius:15px;background:#f8fafc;padding:12px 16px;min-height:62px}.lastKeyBox span{display:block;font-size:13px;color:#718099;margin-bottom:6px}.lastKeyBox b{font-size:16px;color:#0f172a}.keyToolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.keyToolbar button,.keyTabs button{border:1px solid #d8e2f0;background:white;border-radius:14px;padding:11px 14px;font-weight:900;color:#102244;cursor:pointer;box-shadow:0 8px 18px rgba(35,60,110,.05)}.keyTabs{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 16px}.keyTabs button.active{background:linear-gradient(135deg,#426cf5,#7b3ff2);color:#fff;border:0}.statsRow{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:12px 0}.statsRow div{border:1px solid #dbe5f2;border-radius:14px;background:#f8fafc;padding:13px 14px}.statsRow div span{display:block;color:#64748b;font-size:13px;margin-bottom:6px}.statsRow div b{font-size:22px}.statsRow .green{background:#ecfdf3;border-color:#94d8b5}.statsRow .yellow{background:#fff8e6;border-color:#f8d36e}.statsRow .red{background:#fff1f2;border-color:#fecdd3}.statsRow .blue{background:#eff6ff;border-color:#bfdbfe}.statsRow.small{grid-template-columns:repeat(4,1fr)}.cacheCard{border:1px solid #1f2937;border-radius:16px;padding:16px;margin-top:16px}.cacheHead{display:flex;justify-content:space-between;align-items:center;gap:12px}.cacheHead h3{margin:0}.keyListPanel{display:grid;grid-template-columns:1fr 1fr;gap:16px}.keyListPanel textarea{width:100%;min-height:230px;border:1px solid #d5deeb;border-radius:14px;background:#f8fbff;padding:14px;font-family:ui-monospace,Consolas,monospace}.miniTable{border:1px solid #dce6f5;border-radius:15px;overflow:hidden;background:#fff}.miniTable div{display:grid;grid-template-columns:90px 1fr 80px;gap:10px;padding:11px 13px;border-bottom:1px solid #eef2f7;align-items:center}.miniTable em{font-style:normal;color:#087647;font-weight:900}.logOnly{display:block;min-height:180px;border:1px solid #dce6f5;border-radius:15px;padding:14px;background:#fbfdff}.logOnly p{margin:7px 0;color:#475569}.vertexGrid{margin-top:8px}.previewPanel{grid-template-columns:1fr minmax(360px,560px) auto}.previewPanel audio{height:42px}.rightWorkspace{scrollbar-width:thin;scrollbar-color:#c7d4e8 transparent}
+@media(max-width:1200px){.statsRow{grid-template-columns:repeat(3,1fr)}.keyHeader{grid-template-columns:1fr}.keyListPanel{grid-template-columns:1fr}.cleanProgress .infoGrid{grid-template-columns:1fr}.leftRail{overflow:auto}}
+
+/* Phase 7 fixes: BGM combo, preview reliability, detailed English-style Key Manager */
+.bgmCombo{display:flex;align-items:center;gap:0;border:1px solid #d5deeb;border-radius:999px;background:#f3f6fb;overflow:hidden;opacity:.55;transition:.18s ease;box-shadow:0 8px 18px rgba(20,40,90,.04)}
+.bgmCombo.enabled{background:#eafff4;border-color:#b9efd5;opacity:1}
+.bgmCombo label{display:flex;align-items:center;gap:8px;padding:9px 12px;font-weight:900;color:#1f3c5a;white-space:nowrap}
+.bgmCombo input{accent-color:#10b981}
+.bgmCombo button{border:0;border-left:1px solid rgba(20,40,90,.09);background:rgba(255,255,255,.72);padding:9px 13px;font-weight:900;color:#05774d;cursor:pointer}
+.bgmCombo button:disabled{color:#8c99ad;background:#edf1f7;cursor:not-allowed}
+.englishKeyManager{border:1px solid #111827;border-radius:18px;box-shadow:none;background:#fff;padding:18px 20px}
+.englishKeyManager .keyHeader{display:grid;grid-template-columns:minmax(0,1fr) 260px auto;gap:12px;align-items:start}
+.englishKeyManager h2{font-size:20px;margin-bottom:4px}.englishKeyManager h3{margin:0;font-size:17px}
+.englishKeyManager .keyToolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 12px}
+.englishKeyManager .keyToolbar button,.englishKeyManager .keyTabs button,.englishKeyManager .cacheHead button{border:1px solid #d8e2f0;background:white;border-radius:14px;padding:11px 14px;font-weight:950;color:#102244;cursor:pointer;box-shadow:0 9px 20px rgba(35,60,110,.05)}
+.englishKeyManager .keyTabs{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
+.englishKeyManager .keyTabs button.active{background:linear-gradient(135deg,#426cf5,#7b3ff2);color:#fff;border:0}.englishKeyManager .lastKeyBox{border:1px solid #dce6f5;border-radius:15px;background:#f8fafc;padding:12px 16px;min-height:62px}.englishKeyManager .lastKeyBox span{display:block;font-size:13px;color:#718099;margin-bottom:6px}.englishKeyManager .lastKeyBox b{font-size:15px;color:#0f172a;word-break:break-all}.keysTabWrap{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:16px}.keyEditorBox,.keyTableBox{border:1px solid #dce6f5;border-radius:16px;background:#fbfdff;padding:14px}.keyEditorBox textarea{width:100%;min-height:285px;border:1px solid #d5deeb;border-radius:14px;background:white;padding:14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;outline:none}.tableTools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.tableTools input{flex:1;border:1px solid #d5deeb;border-radius:13px;background:white;padding:10px 12px;outline:none}.tableTools span{font-weight:900;color:#64748b}.apiKeyTable{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:white}.apiKeyTable .th,.apiKeyTable .tr{display:grid;grid-template-columns:1.35fr .75fr .55fr .45fr .65fr 1fr .55fr;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #eef2f7;font-size:13px}.apiKeyTable .th{background:#f8fafc;color:#475569;font-weight:950}.apiKeyTable .tr.current{background:#eff6ff}.apiKeyTable .tr span:first-child{font-family:ui-monospace,Consolas,monospace;word-break:break-all}.apiKeyTable em{font-style:normal;border-radius:999px;padding:5px 8px;text-align:center;font-weight:950;text-transform:capitalize}.apiKeyTable em.active{background:#dcfce7;color:#15803d}.apiKeyTable em.unused{background:#f1f5f9;color:#64748b}.apiKeyTable em.error,.apiKeyTable em.invalid{background:#fee2e2;color:#b91c1c}.apiKeyTable em.limited{background:#fef3c7;color:#b45309}.apiKeyTable .tr button{border:1px solid #d5deeb;border-radius:10px;background:#fff;padding:7px 8px;font-weight:900;cursor:pointer}.emptyKey{padding:18px;color:#64748b}.previewPanel audio{display:block;width:100%;min-height:44px}
+@media(max-width:1250px){.englishKeyManager .keyHeader{grid-template-columns:1fr}.keysTabWrap{grid-template-columns:1fr}.apiKeyTable .th,.apiKeyTable .tr{grid-template-columns:1fr 90px 60px 50px 70px}.apiKeyTable .th b:nth-child(6),.apiKeyTable .th b:nth-child(7),.apiKeyTable .tr span:nth-child(6),.apiKeyTable .tr button{display:none}}
+
+/* Phase 8: BGM library + English Key Manager exactness */
+.bgmLibrary{border:1px solid #dce6f5;border-radius:16px;background:#fbfdff;padding:14px;margin:14px 0;max-height:230px;overflow:auto}
+.bgmLibrary h3{margin:0 0 10px;font-size:16px}.bgmLibrary p{margin:0;color:#64748b}.bgmItem{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:13px;background:white;padding:9px 10px;margin-top:8px}.bgmItem.active{background:#ecfdf5;border-color:#86efac}.bgmItem span{font-weight:850;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bgmItem button{border:1px solid #d8e2f0;background:white;border-radius:10px;padding:7px 10px;font-weight:850;cursor:pointer}.closeTop{align-self:start;justify-self:end}.keyDashboardBox{border:1px solid #111827;border-radius:16px;background:#fff;padding:14px}.keyDashHead{display:grid;gap:12px;margin-bottom:12px}.keyDashControls{display:grid;grid-template-columns:1fr 130px 130px;gap:10px}.keyDashControls input,.keyDashControls select{border:1px solid #d5deeb;border-radius:13px;background:white;padding:12px 13px;outline:none;font-weight:700}.apiKeyTable.dashboard{max-height:470px;overflow:auto;border:1px solid #111827;border-radius:14px}.apiKeyTable.dashboard .th,.apiKeyTable.dashboard .tr{grid-template-columns:42px 1.2fr .8fr .65fr .55fr .75fr .75fr 1fr 1fr 110px;min-width:980px}.apiKeyTable.dashboard .th{position:sticky;top:0;z-index:2;background:#f1f5f9}.apiKeyTable.dashboard .tr{min-height:58px}.apiKeyTable.dashboard .tr span:nth-child(2){font-weight:950;color:#0f172a;font-family:ui-monospace,Consolas,monospace}.apiKeyTable.dashboard .tr span:nth-child(9){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#64748b}.apiKeyTable.dashboard button{border:1px solid #d8e2f0;background:white;border-radius:14px;padding:9px 12px;font-weight:950;cursor:pointer}.keyDashFoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:#64748b;font-weight:800}.keyDashFoot button{border:1px solid #d8e2f0;background:white;border-radius:14px;padding:10px 16px;font-weight:950;margin-left:8px}.logRealtimeBox,.vertexProfileBox{border:1px solid #111827;border-radius:16px;background:#fff;padding:16px}.logRealtimeBox pre{background:#020617;color:#dbeafe;border:1px solid #16a34a;border-radius:13px;min-height:56px;padding:14px;white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace}.blueNotice{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:13px;padding:12px 14px;margin:14px 0}.poolBox{border:1px solid #dce6f5;border-radius:16px;background:#f8fafc;padding:14px;margin-bottom:14px}.poolBox p{margin:4px 0 12px;color:#64748b}.poolGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.poolGrid label{display:grid;grid-template-columns:1fr auto;gap:4px;border:1px solid #111827;border-radius:12px;background:white;padding:12px}.poolGrid label span{grid-column:1;color:#64748b;font-size:13px}.poolGrid input{grid-row:1 / span 2;grid-column:2;accent-color:#6d5dfc;width:22px;height:22px}.vertexTable{border:1px solid #111827;border-radius:14px;overflow:hidden;margin-top:14px}.vertexTable>div{display:grid;grid-template-columns:1.2fr 1fr 1fr 120px;align-items:center}.vertexTable>div:first-child{background:#f1f5f9;font-weight:950}.vertexTable span,.vertexTable b{padding:13px;border-right:1px solid #e2e8f0}.vertexTable button{margin:8px;border:0;border-radius:14px;padding:10px 12px;font-weight:950}.previewPanel{position:relative}.previewPanel:before{content:'✓';display:grid;place-items:center;position:absolute;left:14px;top:14px;width:24px;height:24px;border-radius:999px;background:#22c55e;color:white;font-weight:950}.previewPanel>div:first-child{padding-left:26px}
+@media(max-width:1250px){.keyDashControls{grid-template-columns:1fr}.apiKeyTable.dashboard .th,.apiKeyTable.dashboard .tr{grid-template-columns:42px 1.2fr .8fr .65fr .55fr .75fr .75fr 1fr 1fr 110px}.poolGrid{grid-template-columns:1fr}}
+
+
+/* Phase 11 cleanup per user notes */
+.appLight{grid-template-rows:auto 1fr;}
+.globalTitle{grid-column:1/-1;text-align:center;padding:22px 24px 14px;background:linear-gradient(135deg,#f8fbff 0%,#f3f6fb 48%,#f7f3ff 100%);border-bottom:1px solid #e4ebf5;}
+.globalTitle div{margin:0;color:#2363ff;font-weight:950;letter-spacing:.18em;font-size:13px;}
+.globalTitle h1{margin:8px 0 0;font-size:30px;letter-spacing:-.035em;color:#061a3d;}
+.leftRail{height:calc(100vh - 86px);top:86px;padding-top:20px;}
+.rightWorkspace{height:calc(100vh - 86px);padding-top:20px;}
+.titleLogo,.mainTitle{display:none!important;}
+.previewPanel{grid-template-columns:minmax(210px,1fr) minmax(360px,620px) auto;}
+.previewPanel h2.successText{margin:0;color:#16a34a;font-size:20px;}
+.previewPanel p{display:none;}
+.englishKeyManager .keyHeader{grid-template-columns:minmax(0,1fr) 260px auto;align-items:start;}
+.englishKeyManager .keyHeader h2{margin-top:4px;}
+.englishKeyManager .subtle,.fileSettings .subtle,.bgmModal .subtle{display:none!important;}
+.vertexProfileBox .blueNotice{display:none!important;}
+.keyToolbar button{white-space:nowrap;}
+@media(max-width:1100px){.appLight{grid-template-rows:auto auto auto}.leftRail,.rightWorkspace{height:auto;top:auto}.globalTitle{padding:18px 20px 10px}.globalTitle h1{font-size:26px}}
+
+/* Phase 12: remove Home + English-app style Key Manager modal */
+.topHome{display:none!important;}
+.keyModalBackdrop{position:fixed;inset:0;z-index:80;background:rgba(15,23,42,.28);display:flex;align-items:flex-start;justify-content:center;padding:42px 28px;overflow:auto;}
+.englishKeyManagerModal{width:min(1180px,96vw);max-height:calc(100vh - 84px);overflow:auto;margin:0!important;border:1px solid #0f172a!important;border-radius:18px!important;background:#fff!important;box-shadow:0 30px 90px rgba(15,23,42,.28)!important;padding:18px 22px 22px!important;}
+.englishKeyManagerModal .keyHeader{display:grid!important;grid-template-columns:minmax(0,1fr) 260px auto!important;gap:12px!important;align-items:start!important;margin-bottom:16px;}
+.englishKeyManagerModal .keyHeader h2{font-size:22px!important;margin:4px 0 0!important;color:#0f172a!important;}
+.englishKeyManagerModal .closeTop{border-radius:18px!important;padding:13px 18px!important;font-size:16px!important;}
+.englishKeyManagerModal .keyToolbar{display:flex!important;gap:12px!important;flex-wrap:wrap!important;margin:14px 0 18px!important;}
+.englishKeyManagerModal .keyToolbar button{min-height:48px;border-radius:16px!important;font-size:16px!important;padding:12px 18px!important;}
+.englishKeyManagerModal .keyToolbar button:nth-child(4)::after{content:' đã chọn/lỗi';}
+.englishKeyManagerModal .keyTabs{display:flex!important;gap:12px!important;flex-wrap:wrap!important;margin:8px 0 18px!important;}
+.englishKeyManagerModal .keyTabs button{min-height:48px;border-radius:16px!important;font-size:16px!important;padding:12px 18px!important;}
+.englishKeyManagerModal .statsRow{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:10px 0 18px;}
+.englishKeyManagerModal .statsRow>div{border:1px solid #d8e2f0;border-radius:14px;background:#f8fafc;padding:14px 16px;min-height:72px;}
+.englishKeyManagerModal .statsRow span{display:block;color:#64748b;font-size:13px;margin-bottom:7px;}
+.englishKeyManagerModal .statsRow b{font-size:20px;color:#071a3a;}
+.englishKeyManagerModal .statsRow .green{background:#ecfdf5;border-color:#86efac}.englishKeyManagerModal .statsRow .yellow{background:#fffbeb;border-color:#fde68a}.englishKeyManagerModal .statsRow .red{background:#fef2f2;border-color:#fecaca}.englishKeyManagerModal .statsRow .blue{background:#eff6ff;border-color:#bfdbfe}
+.englishKeyManagerModal .cacheCard,.englishKeyManagerModal .keyDashboardBox,.englishKeyManagerModal .logRealtimeBox,.englishKeyManagerModal .vertexProfileBox{border:1px solid #0f172a!important;border-radius:16px!important;background:#fff!important;padding:16px!important;}
+.englishKeyManagerModal .keyDashControls{display:grid;grid-template-columns:1fr 140px 140px;gap:10px;}
+.englishKeyManagerModal .apiKeyTable.dashboard{max-height:430px!important;overflow:auto!important;}
+.englishKeyManagerModal .logRealtimeBox pre{min-height:88px!important;}
+.englishKeyManagerModal .poolBox p{display:none!important;}
+@media(max-width:900px){.englishKeyManagerModal .keyHeader{grid-template-columns:1fr!important}.englishKeyManagerModal .statsRow{grid-template-columns:repeat(2,1fr)}.englishKeyManagerModal .keyDashControls{grid-template-columns:1fr}.keyModalBackdrop{padding:18px 12px}.englishKeyManagerModal{max-height:calc(100vh - 36px)}}
+
+
+/* Phase 13 functional polish */
+.directKeyEditor{border:1px solid #dbe5f2;background:#f8fafc;border-radius:14px;padding:10px 12px;margin-bottom:12px;}
+.directKeyEditor summary{font-weight:950;color:#334155;cursor:pointer;}
+.directKeyEditor textarea{margin-top:10px;width:100%;min-height:120px;border:1px solid #ccd8ea;border-radius:12px;padding:12px;font-family:ui-monospace,Consolas,monospace;resize:vertical;}
+.logList{border:1px solid #0f172a;border-radius:14px;overflow:hidden;background:#fff;max-height:520px;overflow-y:auto;}
+.logRow{display:grid;grid-template-columns:150px 90px 90px 140px 1fr 90px;gap:10px;align-items:center;padding:11px 12px;border-bottom:1px solid #e2e8f0;font-size:13px;}
+.logRow span{color:#64748b}.logRow b{color:#0f172a}.logRow strong{font-family:ui-monospace,Consolas,monospace;color:#1d4ed8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logRow p{margin:0;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.logRow i{font-style:normal;color:#64748b;text-align:right}.logRow em{font-style:normal;border-radius:999px;padding:5px 8px;text-align:center;font-weight:950;text-transform:capitalize}.logRow em.success,.logRow em.active{background:#dcfce7;color:#15803d}.logRow em.error,.logRow em.invalid{background:#fee2e2;color:#b91c1c}.logRow em.limited{background:#fef3c7;color:#b45309}.logRow em.unused{background:#f1f5f9;color:#64748b}
+.keyToolbar button:nth-child(4)::after{content:''!important;}
+@media(max-width:1000px){.logRow{grid-template-columns:1fr 80px 80px}.logRow strong,.logRow i,.logRow span{display:none}}
+.cacheToggle{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#374151;background:#eef6ff;border:1px solid #bfdbfe;border-radius:999px;padding:7px 10px;white-space:nowrap}.cacheToggle input{accent-color:#2563eb}.cacheNote{margin:10px 0 0;color:#64748b;font-size:12px;line-height:1.45}.progressPanel .infoGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+/* Phase 16 UI / Branding Polish Pass */
+:root{
+  --evs-bg:#f6f8fc;
+  --evs-card:#ffffff;
+  --evs-line:#dfe7f2;
+  --evs-text:#0f172a;
+  --evs-muted:#64748b;
+  --evs-blue:#3b82f6;
+  --evs-blue-2:#2563eb;
+  --evs-green:#16a34a;
+  --evs-shadow:0 18px 42px rgba(15,23,42,.075);
+}
+body{font-family:Inter,"Be Vietnam Pro","SF Pro Display","Segoe UI Variable","Segoe UI",Arial,sans-serif;background:var(--evs-bg);color:var(--evs-text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.appLight{background:linear-gradient(135deg,#f8fbff 0%,#f5f7fb 58%,#f8fbff 100%)}.globalTitle{background:rgba(255,255,255,.72);backdrop-filter:blur(16px);box-shadow:0 10px 28px rgba(15,23,42,.04)}.globalTitle div{color:#2563eb;font-size:12px;letter-spacing:.22em}.globalTitle h1{font-size:29px;font-weight:950;color:#0f172a}.leftRail{background:rgba(247,250,255,.78);border-right:1px solid #e2e8f0}.leftRail::-webkit-scrollbar,.rightWorkspace::-webkit-scrollbar,.englishKeyManagerModal::-webkit-scrollbar,.apiKeyTable::-webkit-scrollbar{width:8px;height:8px}.leftRail::-webkit-scrollbar-thumb,.rightWorkspace::-webkit-scrollbar-thumb,.englishKeyManagerModal::-webkit-scrollbar-thumb,.apiKeyTable::-webkit-scrollbar-thumb{background:#cbd5e1;border:2px solid transparent;border-radius:999px;background-clip:content-box}.leftRail::-webkit-scrollbar-thumb:hover,.rightWorkspace::-webkit-scrollbar-thumb:hover,.englishKeyManagerModal::-webkit-scrollbar-thumb:hover,.apiKeyTable::-webkit-scrollbar-thumb:hover{background:#94a3b8;background-clip:content-box}.leftCard,.scriptPanel,.settingsCard,.previewPanel,.progressPanel,.modalCard,.englishKeyManagerModal{border-color:var(--evs-line)!important;border-radius:22px!important;box-shadow:var(--evs-shadow)!important;background:rgba(255,255,255,.96)!important}.compactLeft{padding:13px 15px}.leftCard h2,.scriptPanel h2,.settingsCard h2,.previewPanel h2,.progressPanel h2{font-size:17px;font-weight:950;letter-spacing:-.02em;color:#111827}.fieldLabel{font-size:13px;color:#475569;font-weight:850}.subtle,.hint,.scriptMeta span,.infoGrid div{color:var(--evs-muted)}.presetGrid button{border:1px solid #e2e8f0;background:#fff;border-radius:16px;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease}.presetGrid button:hover{transform:translateY(-1px);border-color:#bfdbfe;box-shadow:0 10px 22px rgba(37,99,235,.08)}.presetGrid button.active{border-color:#93c5fd;background:linear-gradient(180deg,#eff6ff,#f8fbff);box-shadow:inset 0 0 0 1px #dbeafe,0 10px 22px rgba(37,99,235,.07)}.seg button,.rowBtns button,.plainBtn,.pillBtn,.roundMini,.keyToolbar button,.keyTabs button,.keyDashFoot button,.apiKeyTable.dashboard button{border-radius:14px!important;border:1px solid #d8e2f0;background:#fff;color:#0f172a;font-weight:900;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}.seg button:hover,.rowBtns button:hover,.plainBtn:hover,.pillBtn:hover,.roundMini:hover,.keyToolbar button:hover,.keyTabs button:hover,.keyDashFoot button:hover,.apiKeyTable.dashboard button:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(15,23,42,.08)}.seg button.active,.primarySoft{background:linear-gradient(135deg,#2563eb,#5b8cff)!important;color:white!important;border-color:#2563eb!important}.fullSelect,.nameInput,.settingsGrid input,.settingsGrid select,.keyDashControls input,.keyDashControls select{border-color:#dbe5f2;background:#f8fafc;border-radius:14px;font-weight:760;color:#0f172a}.scriptPanel{padding:21px}.scriptPanel textarea{border:1px solid #cbd5e1;border-radius:20px;min-height:350px;font-size:17px;line-height:1.7;color:#111827;background:linear-gradient(180deg,#fff,#fcfdff);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}.scriptPanel textarea::placeholder{color:#94a3b8}.scriptPanel textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.13),inset 0 1px 0 rgba(255,255,255,.75)}.charPill,.percent,.bgmToggle,.cacheToggle{background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;font-size:13px}.pillBtn{background:#ecfdf5;color:#047857;border-color:#bbf7d0}.actionBar{gap:10px}.actionBar button{border-radius:16px;padding:13px 22px;font-weight:950;letter-spacing:-.01em;box-shadow:0 14px 28px rgba(37,99,235,.16);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}.actionBar button:hover{transform:translateY(-1px);box-shadow:0 18px 34px rgba(37,99,235,.2);filter:saturate(1.05)}.actionBar .mainCta{background:linear-gradient(135deg,#2563eb,#5b8cff);box-shadow:0 18px 36px rgba(37,99,235,.24)}.actionBar button:nth-child(2){background:linear-gradient(135deg,#475569,#64748b)}.actionBar button:nth-child(3){background:linear-gradient(135deg,#059669,#10b981)}.actionBar button:nth-child(4){background:linear-gradient(135deg,#4338ca,#6366f1)}.previewPanel{border-color:#bbf7d0!important;background:linear-gradient(180deg,#ffffff,#f7fffb)!important}.previewPanel:before{background:#16a34a;box-shadow:0 8px 18px rgba(22,163,74,.22)}.previewPanel h2.successText{color:#15803d;font-weight:950}.previewPanel audio{height:42px;filter:drop-shadow(0 8px 16px rgba(15,23,42,.06))}.progressPanel{overflow:hidden}.progressHeader h2{display:flex;align-items:center;gap:10px}.progressHeader h2:before{content:'●';font-size:13px;color:#2563eb}.bar{height:16px;background:#e8eef7;box-shadow:inset 0 2px 5px rgba(15,23,42,.09)}.bar span{background:linear-gradient(90deg,#2563eb,#5b8cff,#22c55e)}.stepRow div{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8;border-radius:12px;font-size:13px}.stepRow div.active{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.infoGrid div{background:#f8fafc;border:1px solid #edf2f7;border-radius:13px;font-size:13px}.infoGrid b{font-weight:950;color:#0f172a}.englishKeyManagerModal{border-color:#cbd5e1!important}.englishKeyManagerModal .keyHeader h2{font-size:23px!important;letter-spacing:-.02em}.englishKeyManagerModal .statsRow>div{border-color:#e2e8f0;background:#f8fafc;box-shadow:0 8px 20px rgba(15,23,42,.035)}.englishKeyManagerModal .statsRow b{font-weight:950}.englishKeyManagerModal .cacheCard,.englishKeyManagerModal .keyDashboardBox,.englishKeyManagerModal .logRealtimeBox,.englishKeyManagerModal .vertexProfileBox{border-color:#cbd5e1!important;box-shadow:0 10px 28px rgba(15,23,42,.045)}.apiKeyTable.dashboard{border-color:#cbd5e1!important}.apiKeyTable.dashboard .th{background:#f8fafc;color:#334155}.apiKeyTable.dashboard .tr:hover{background:#f8fbff}.logRealtimeBox pre{border-color:#334155!important;border-radius:14px!important}.modalBackdrop,.keyModalBackdrop{backdrop-filter:blur(8px)}@media(max-width:1100px){.globalTitle h1{font-size:25px}.scriptPanel textarea{min-height:300px}.actionBar button{width:100%}}
+
+/* Phase 17 - Pronunciation Dictionary / Word Replace */
+.dictTopBtn{border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:9px 14px;font-weight:950;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,background .15s ease;white-space:nowrap}.dictTopBtn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,.11)}.dictTopBtn.enabled{background:#ecfdf5;color:#047857;border-color:#bbf7d0}.dictModal{width:min(880px,94vw);max-height:88vh;overflow:auto}.dictSub{margin:4px 0 0;color:#64748b;font-size:13px;line-height:1.45}.dictToggle{margin:14px 0 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:11px 12px;width:max-content;max-width:100%}.dictAddRow{display:grid;grid-template-columns:1fr auto;gap:10px;margin:12px 0}.dictAddRow input{border:1px solid #d5deeb;border-radius:14px;background:#f8fbff;padding:12px;font-weight:800;outline:none}.dictAddRow input:focus{border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.12)}.dictAddRow button,.dictActions button,.dictItem button{border:1px solid #d8e2f0;background:#fff;border-radius:14px;padding:11px 14px;font-weight:900;color:#0f172a;cursor:pointer}.dictActions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.dictList{border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:10px;max-height:310px;overflow:auto}.dictList>p{margin:10px;color:#64748b}.dictItem{display:grid;grid-template-columns:34px 1fr 24px 1.5fr auto;gap:8px;align-items:center;background:#fff;border:1px solid #e5edf7;border-radius:14px;padding:8px;margin-bottom:8px}.dictItem:last-child{margin-bottom:0}.dictItem input[type='text'],.dictItem input:not([type]){border:1px solid #dbe5f2;border-radius:12px;padding:10px;background:#fff;font-weight:760;min-width:0}.dictItem span{text-align:center;color:#64748b;font-weight:950}.dictItem button{padding:9px 11px;color:#b91c1c;border-color:#fecaca;background:#fff7f7}.dictPreview{margin-top:12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:16px;padding:12px}.dictPreview b{color:#15803d}.dictPreview p{margin:8px 0 0;color:#14532d;line-height:1.55;white-space:pre-wrap}@media(max-width:760px){.dictAddRow{grid-template-columns:1fr}.dictItem{grid-template-columns:28px 1fr}.dictItem span{display:none}.dictItem button{grid-column:1/-1}.dictTopBtn{width:100%}}
+
+/* Phase 18 cleanup */
+.dictAddRow.twoInputs{grid-template-columns:minmax(160px,1fr) 24px minmax(180px,1.2fr) auto;align-items:center}
+.dictAddRow.twoInputs span{font-weight:950;color:#64748b;text-align:center}
+.previewPanel.cleanPreview{grid-template-columns:minmax(360px,1fr) auto;gap:14px;align-items:center;border-color:#dce6f5!important;background:rgba(255,255,255,.96)!important}
+.previewPanel.cleanPreview:before{display:none!important;content:none!important}
+.previewPanel.cleanPreview>div:first-child{padding-left:0!important}
+.previewPanel.cleanPreview .rowBtns{margin-top:0;justify-content:flex-end}
+.previewPanel.cleanPreview audio{width:100%}
+@media(max-width:760px){.dictAddRow.twoInputs{grid-template-columns:1fr}.dictAddRow.twoInputs span{display:none}.previewPanel.cleanPreview{grid-template-columns:1fr}.previewPanel.cleanPreview .rowBtns{justify-content:flex-start}}
+
+
+/* EVS final shell-ready polish */
+button,input,textarea,select{font-family:Inter,"Be Vietnam Pro","Segoe UI Variable","Segoe UI",Arial,sans-serif;}
+.bgmSettingBtn{background:linear-gradient(135deg,#7c3aed,#2563eb)!important;color:#fff!important;border:0!important;box-shadow:0 16px 32px rgba(99,102,241,.24)!important;}
+.bgmSettingBtn:disabled{background:#cbd5e1!important;color:#f8fafc!important;box-shadow:none!important;opacity:.72;}
+.bgmLibrary .bgmItem span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:850;color:#0f172a;}
+.bgmModal .rowBtns{align-items:center;}
+.bgmModal .rowBtns .primarySoft{order:99;}
+
+
+/* Final Shell Polish: clearer Vietnamese font + brighter icons/music controls */
+:root{
+  --font-vn:"Segoe UI Variable Text","Segoe UI",Inter,"Be Vietnam Pro",Arial,sans-serif;
+  --accent:#2563eb;
+  --accent-2:#7c3aed;
+  --music:#8b5cf6;
+  --ink:#0f172a;
+  --muted:#475569;
+}
+html,body,#root{font-family:var(--font-vn)!important;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{color:var(--ink)!important;letter-spacing:-.006em;}
+button,input,textarea,select{font-family:var(--font-vn)!important;font-weight:760;}
+button{letter-spacing:-.01em;}
+.leftCard h2,.scriptPanel h2,.settingsCard h2,.progressPanel h2,.previewPanel h2{font-weight:900!important;letter-spacing:-.025em!important;}
+.fieldLabel,.scriptMeta span,.charPill,.percent,.bgmToggle,.cacheToggle{font-weight:780!important;}
+.scriptPanel textarea{font-family:var(--font-vn)!important;font-weight:520!important;line-height:1.72!important;color:#111827!important;}
+.scriptPanel textarea::placeholder{color:#8b98aa!important;}
+.actionBar button,.rowBtns button,.plainBtn,.pillBtn,.keyToolbar button,.keyTabs button{font-weight:880!important;}
+.bgmSettingBtn{position:relative;display:inline-flex!important;align-items:center;gap:9px;background:linear-gradient(135deg,#8b5cf6,#2563eb)!important;color:#fff!important;border:0!important;box-shadow:0 16px 34px rgba(99,102,241,.28)!important;text-shadow:0 1px 1px rgba(15,23,42,.18)!important;}
+.bgmSettingBtn::before{content:'♪';display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:rgba(255,255,255,.24);color:#fff;font-size:18px;font-weight:950;line-height:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.bgmSettingBtn:hover{filter:saturate(1.08) brightness(1.03)!important;transform:translateY(-1px);}
+.bgmSettingBtn:disabled{background:#cbd5e1!important;color:#f8fafc!important;box-shadow:none!important;opacity:.68;text-shadow:none!important;}
+.bgmSettingBtn:disabled::before{background:rgba(255,255,255,.22);color:#fff;}
+.bgmLibrary .bgmItem span{display:block;max-width:360px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:850;color:#0f172a;}
+.externalAudioBox{margin-top:14px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:16px;padding:13px;}
+.externalAudioBox h3,.bgmLibrary h3{font-size:15px;margin:0 0 10px;color:#111827;font-weight:900;letter-spacing:-.02em;}
+.externalAudioRow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;}
+.externalAudioRow span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#334155;font-weight:820;background:#fff;border:1px solid #e5edf7;border-radius:12px;padding:10px 12px;}
+.externalAudioRow button,.bgmActionRow button{border:1px solid #d8e2f0;background:#fff;border-radius:14px;padding:10px 13px;font-weight:880;color:#0f172a;cursor:pointer;}
+.bgmActionRow{align-items:center;}
+.bgmActionRow .primarySoft{margin-left:auto;}
+@media(max-width:760px){.externalAudioRow{grid-template-columns:1fr}.bgmActionRow .primarySoft{margin-left:0}}
+
+/* Phase 19 - Icon/color sync with Easy Voice English */
+.iconBtn,
+.actionBar button,
+.keyTabs button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.iconBtn svg,
+.actionBar button svg,
+.keyTabs button svg {
+  flex: 0 0 auto;
+  font-size: 1em;
+}
+.actionBar .mainCta {
+  background: linear-gradient(135deg,#7c3aed,#a855f7) !important;
+  color: #fff !important;
+  border-color: #7c3aed !important;
+}
+.actionBar .bgmSettingBtn,
+.bgmAddBtn {
+  background: linear-gradient(135deg,#ea580c,#f97316) !important;
+  color: #fff !important;
+  border-color: #ea580c !important;
+}
+.actionBar .settingsActionBtn,
+.refreshBtn {
+  background: linear-gradient(135deg,#0f766e,#14b8a6) !important;
+  color: #fff !important;
+  border-color: #0f766e !important;
+}
+.actionBar .folderActionBtn,
+.folderActionBtn,
+.folderPickBtn {
+  background: linear-gradient(135deg,#2563eb,#60a5fa) !important;
+  color: #fff !important;
+  border-color: #2563eb !important;
+}
+.actionBar .keyActionBtn,
+.testBtn {
+  background: linear-gradient(135deg,#4f46e5,#818cf8) !important;
+  color: #fff !important;
+  border-color: #4f46e5 !important;
+}
+.cleanBtn {
+  background: linear-gradient(135deg,#64748b,#94a3b8) !important;
+  color: #fff !important;
+  border-color: #64748b !important;
+}
+.previewBtn {
+  background: linear-gradient(135deg,#16a34a,#22c55e) !important;
+  color: #fff !important;
+  border-color: #16a34a !important;
+}
+.importBtn {
+  background: linear-gradient(135deg,#0284c7,#38bdf8) !important;
+  color: #fff !important;
+  border-color: #0284c7 !important;
+}
+.exportBtn,
+.downloadBtn,
+.exportAudioBtn {
+  background: linear-gradient(135deg,#9333ea,#c084fc) !important;
+  color: #fff !important;
+  border-color: #9333ea !important;
+}
+.audioAddBtn {
+  background: linear-gradient(135deg,#db2777,#f472b6) !important;
+  color: #fff !important;
+  border-color: #db2777 !important;
+}
+.removeBtn,
+.dangerBtn {
+  background: linear-gradient(135deg,#dc2626,#f87171) !important;
+  color: #fff !important;
+  border-color: #dc2626 !important;
+}
+.doneBtn,
+.primarySoft.doneBtn {
+  background: linear-gradient(135deg,#059669,#34d399) !important;
+  color: #fff !important;
+  border-color: #059669 !important;
+}
+.keyTabs button {
+  min-height: 40px;
+}
+.keyTabs button.active {
+  background: linear-gradient(135deg,#2563eb,#5b8cff) !important;
+  color: #fff !important;
+  border-color: #2563eb !important;
+}
+.bgmLibrary button:first-of-type {
+  background: linear-gradient(135deg,#059669,#34d399) !important;
+  color:#fff !important;
+  border-color:#059669 !important;
+}
+.bgmLibrary button:last-of-type,
+.dictItem button {
+  background: linear-gradient(135deg,#dc2626,#f87171) !important;
+  color:#fff !important;
+  border-color:#dc2626 !important;
+}
+
+/* Key Manager compact flow update */
+.keyDashHead{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px!important;margin-bottom:12px}
+.keyDashHead h3{margin:0}
+.keyDashActions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.keyDashControls{grid-column:1/-1;display:grid;grid-template-columns:1fr 130px 130px;gap:10px}
+.englishKeyManagerModal .downloadBtn{background:linear-gradient(135deg,#2563eb,#5b8cff)!important;color:#fff!important;border-color:#2563eb!important}
+@media(max-width:900px){.keyDashHead{grid-template-columns:1fr}.keyDashActions{justify-content:flex-start}.keyDashControls{grid-template-columns:1fr}}

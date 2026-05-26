@@ -1,0 +1,85 @@
+{
+  "name": "easy-studio-shell",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Easy Studio Shell for Easy Script, Easy Voice/Video, and Easy Thumbnail",
+  "main": "electron/main.cjs",
+  "author": "Thang Tran",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dist": "vite build && electron-builder",
+    "dist:win": "vite build && electron-builder --win",
+    "pack": "vite build && electron-builder --dir"
+  },
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.12.0",
+    "@google/genai": "^1.21.0",
+    "axios": "^1.13.6",
+    "cors": "^2.8.6",
+    "electron-updater": "^6.8.3",
+    "express": "^4.22.1",
+    "ffmpeg-static": "^5.3.0",
+    "google-auth-library": "^10.6.2",
+    "lucide-react": "latest",
+    "node-fetch": "^3.3.2",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-icons": "^5.6.0",
+    "wavesurfer.js": "^7.12.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "electron": "latest",
+    "electron-builder": "^26.0.12",
+    "rimraf": "^6.0.1",
+    "typescript": "latest",
+    "vite": "latest",
+    "wait-on": "latest"
+  },
+  "build": {
+    "appId": "com.easy.studio.shell",
+    "productName": "Easy Studio",
+    "artifactName": "${productName} Setup ${version}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icons/easy-studio.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "build/icons/**/*",
+      "src/apps/easy-voice-video/server/**/*",
+      "src/apps/easy-voice-video/electron/video/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "src/apps/easy-voice-video/server/**/*",
+      "src/apps/easy-voice-video/electron/video/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "tranthanghp88",
+        "repo": "easy-studio"
+      }
+    ]
+  }
+}

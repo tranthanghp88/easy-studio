@@ -1,0 +1,14 @@
+src/apps/easy-script/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/vite/dist/node/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/apps/easy-script/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/@vitejs/plugin-react/dist/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/apps/easy-thumbnail/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/vite/dist/node/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/apps/easy-thumbnail/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/@vitejs/plugin-react/dist/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/apps/easy-voice-video/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/vite/dist/node/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/apps/easy-voice-video/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+  There are types at 'c:/001/node_modules/@vitejs/plugin-react/dist/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+src/shell/AppPlaceholder.tsx(11,47): error TS2322: Type '{ size: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'size' does not exist on type 'IntrinsicAttributes'.

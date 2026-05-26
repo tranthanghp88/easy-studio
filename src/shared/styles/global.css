@@ -1,0 +1,982 @@
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f5f8ff;
+  color: #142033;
+}
+button, input, textarea, select { font: inherit; }
+
+.es-root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,.13), transparent 30%),
+    radial-gradient(circle at top right, rgba(14,165,233,.12), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f3f7ff 52%, #edf4ff 100%);
+  color: #142033;
+}
+.es-root-home-only { display: block; }
+.es-main,
+.es-home-main {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+.es-content,
+.es-home-content {
+  width: 100%;
+  height: 100vh;
+  overflow: auto;
+  padding: 42px 36px;
+}
+
+.es-dashboard-clean {
+  min-height: calc(100vh - 84px);
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 38px;
+}
+
+.es-studio-title {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.es-studio-mark {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  font-size: 34px;
+  box-shadow: 0 20px 45px rgba(37,99,235,.22);
+}
+.es-studio-title h1 {
+  margin: 0;
+  font-size: clamp(52px, 8vw, 96px);
+  line-height: .92;
+  letter-spacing: -.065em;
+  color: #111827;
+  font-weight: 1000;
+  text-shadow: 0 1px 0 rgba(255,255,255,.75);
+}
+.es-studio-title p {
+  margin: 8px 0 0;
+  font-size: 18px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.es-app-grid-clean {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.es-app-card-clean {
+  appearance: none;
+  border: 1px solid rgba(148,163,184,.34);
+  background: rgba(255,255,255,.88);
+  color: #0f172a;
+  border-radius: 30px;
+  padding: 34px 24px 30px;
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 22px;
+  cursor: pointer;
+  box-shadow: 0 22px 60px rgba(15,23,42,.10);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.es-app-card-clean:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 72px rgba(37,99,235,.18);
+  border-color: rgba(37,99,235,.36);
+}
+.es-app-emoji {
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  background: linear-gradient(135deg, #eef6ff, #e8edff);
+  border: 1px solid rgba(148,163,184,.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+}
+.es-app-card-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  color: #111827;
+  font-weight: 950;
+  text-align: center;
+}
+.es-mounted-screen {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: transparent;
+  color: initial;
+}
+.es-loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #f5f8ff;
+  color: #142033;
+  font-weight: 850;
+}
+@media (max-width: 900px) {
+  .es-app-grid-clean { grid-template-columns: 1fr; max-width: 420px; }
+  .es-content, .es-home-content { padding: 28px 18px; }
+  .es-dashboard-clean { align-content: start; padding-top: 40px; }
+}
+
+
+/* Easy Studio unified light shell + button system */
+:root {
+  --es-primary: #2563eb;
+  --es-primary-2: #7c3aed;
+  --es-secondary: #ffffff;
+  --es-text: #111827;
+  --es-muted: #64748b;
+  --es-border: rgba(148, 163, 184, .35);
+  --es-card: rgba(255,255,255,.92);
+  --es-radius: 22px;
+}
+.es-root, .es-loading-screen {
+  background: linear-gradient(180deg, #ffffff 0%, #f6f9ff 55%, #eef5ff 100%) !important;
+  color: var(--es-text) !important;
+}
+.es-dashboard-clean {
+  position: relative;
+  min-height: calc(100vh - 84px);
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 44px;
+}
+.es-studio-title { gap: 0; }
+.es-studio-title h1 {
+  font-size: clamp(64px, 9vw, 118px) !important;
+  letter-spacing: -.055em !important;
+  line-height: .9 !important;
+  color: #0f172a !important;
+  text-shadow: 0 8px 30px rgba(37,99,235,.14) !important;
+}
+.es-studio-title p, .es-studio-mark { display: none !important; }
+.es-app-grid-clean {
+  width: min(1180px, 100%);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.es-app-card-clean {
+  min-height: 205px;
+  border-radius: 30px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 22px 65px rgba(15,23,42,.09);
+}
+.es-app-icon {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  color: #2563eb;
+  background: linear-gradient(135deg, #eaf3ff, #f3edff);
+  border: 1px solid rgba(37,99,235,.14);
+}
+.es-app-card-title { font-size: 22px; font-weight: 950; }
+.es-about-button {
+  position: fixed;
+  top: 22px;
+  right: 26px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(37,99,235,.18);
+  border-radius: 999px;
+  color: #1e3a8a;
+  background: #fff;
+  font-weight: 850;
+  box-shadow: 0 12px 28px rgba(37,99,235,.12);
+  cursor: pointer;
+}
+.es-mounted-screen button,
+.es-root button {
+  border-radius: 16px;
+  min-height: 42px;
+  font-weight: 800;
+  border: 1px solid rgba(148, 163, 184, .28);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.es-mounted-screen button:hover,
+.es-root button:hover { transform: translateY(-1px); }
+.es-mounted-screen button:disabled,
+.es-root button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+@media (max-width: 900px) {
+  .es-app-grid-clean { grid-template-columns: 1fr; max-width: 420px; }
+  .es-about-button { position: static; justify-self: center; }
+}
+
+.es-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, .24);
+  backdrop-filter: blur(8px);
+}
+.es-about-modal {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 34px 30px 30px;
+  border-radius: 30px;
+  background: #fff;
+  border: 1px solid rgba(148,163,184,.28);
+  box-shadow: 0 30px 90px rgba(15,23,42,.2);
+  text-align: center;
+  color: #0f172a;
+}
+.es-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #334155;
+}
+.es-modal-icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #eaf3ff, #f3edff);
+  color: #2563eb;
+}
+.es-about-modal h2 { margin: 0; font-size: 30px; font-weight: 950; }
+.es-about-modal p { margin: 10px 0 0; color: #64748b; font-weight: 650; }
+.es-about-note {
+  margin: 22px 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid rgba(148,163,184,.22);
+  font-weight: 700;
+}
+.es-update-placeholder {
+  padding: 0 20px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  border: 0;
+  border-radius: 16px;
+  min-height: 44px;
+  font-weight: 850;
+}
+
+
+
+/* v12: softer unified controls. Keep each child app's colors; only normalize spacing/radius. */
+.es-mounted-screen :is(.easy-script-shell-host, .voice-video-scope, .easy-thumbnail-shell-host) button {
+  border-radius: 14px;
+  font-weight: 800;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.es-mounted-screen :is(.easy-script-shell-host, .voice-video-scope, .easy-thumbnail-shell-host) button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.es-mounted-screen :is(.easy-script-shell-host, .voice-video-scope, .easy-thumbnail-shell-host) button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Unified Home button across Script / Voice / Thumbnail */
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn) {
+  min-height: 40px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(37, 99, 235, .22) !important;
+  background: #ffffff !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, .12) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover {
+  background: #eff6ff !important;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, .18) !important;
+}
+.es-home-icon, .homeIconBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1;
+}
+.es-mounted-screen .easy-script-shell-host .topbar { align-items: center !important; }
+.es-mounted-screen .easy-script-shell-host .top-actions { margin-left: auto; }
+.es-mounted-screen .easy-script-shell-host .home-button { order: 99; }
+
+/* Voice action buttons: keep colorful style but align size/order. */
+.voice-video-scope .voice-action-bar { gap: 12px !important; align-items: center; }
+.voice-video-scope .voice-action-btn {
+  min-height: 46px !important;
+  padding: 11px 18px !important;
+  border-radius: 16px !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, .16) !important;
+  font-weight: 900 !important;
+}
+.voice-video-scope .voice-generate { background: linear-gradient(135deg, #8b5cf6, #ec4899) !important; }
+.voice-video-scope .voice-render { background: linear-gradient(135deg, #059669, #0ea5e9) !important; }
+.voice-video-scope .voice-merge { background: linear-gradient(135deg, #f59e0b, #ea580c) !important; }
+.voice-video-scope .voice-key { background: linear-gradient(135deg, #4f46e5, #2563eb) !important; }
+.voice-video-scope .voice-manager-pill {
+  min-height: 34px !important;
+  padding: 7px 13px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(148, 163, 184, .25) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .08) !important;
+  font-weight: 850 !important;
+}
+.voice-video-scope .voice-bgm-pill { background: #ecfdf5 !important; color: #047857 !important; }
+.voice-video-scope .voice-laugh-pill { background: #f5f3ff !important; color: #6d28d9 !important; }
+
+/* Shell updater controls */
+.es-version-line {
+  margin-top: 12px;
+  color: #475569;
+  font-weight: 750;
+}
+.es-update-status {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid rgba(37,99,235,.16);
+  font-weight: 750;
+}
+.es-update-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.es-update-primary, .es-update-secondary, .es-update-install {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.es-update-primary, .es-update-install {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 12px 26px rgba(37,99,235,.2);
+}
+.es-update-secondary {
+  color: #1e3a8a;
+  background: #fff;
+  border: 1px solid rgba(37,99,235,.2);
+}
+
+
+/* v13 unified icon-only Home button */
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn),
+.easy-script-shell-host .home-button,
+.voice-video-scope .voice-home-button,
+.easy-thumbnail-shell-host .homeBtn {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(15, 23, 42, .10) !important;
+  background: #ffffff !important;
+  color: #2563eb !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .10) !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+  gap: 0 !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover,
+.easy-script-shell-host .home-button:hover,
+.voice-video-scope .voice-home-button:hover,
+.easy-thumbnail-shell-host .homeBtn:hover {
+  background: #eff6ff !important;
+  border-color: rgba(37, 99, 235, .28) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, .18) !important;
+}
+.es-mounted-screen :is(.es-home-icon, .homeIconBtn),
+.easy-script-shell-host .es-home-icon,
+.voice-video-scope .es-home-icon,
+.easy-thumbnail-shell-host .homeIconBtn {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #2563eb !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+
+/* v14 modern shared Home button */
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn),
+.easy-script-shell-host .home-button,
+.voice-video-scope .voice-home-button,
+.easy-thumbnail-shell-host .homeBtn {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
+  padding: 0 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(59, 130, 246, .35) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #eef6ff 100%) !important;
+  color: #0b63f6 !important;
+  box-shadow: 0 18px 40px rgba(37, 99, 235, .22), inset 0 1px 0 rgba(255,255,255,.92) !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+  gap: 0 !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover,
+.easy-script-shell-host .home-button:hover,
+.voice-video-scope .voice-home-button:hover,
+.easy-thumbnail-shell-host .homeBtn:hover {
+  background: linear-gradient(145deg, #ffffff 0%, #dbeafe 100%) !important;
+  border-color: rgba(37, 99, 235, .55) !important;
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 22px 48px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+.es-mounted-screen :is(.es-home-icon, .homeIconBtn),
+.easy-script-shell-host .es-home-icon,
+.voice-video-scope .es-home-icon,
+.easy-thumbnail-shell-host .homeIconBtn {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #0b63f6 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+}
+
+
+/* v15 premium shared Home button - visible and modern */
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn),
+.easy-script-shell-host .home-button,
+.voice-video-scope .voice-home-button,
+.easy-thumbnail-shell-host .homeBtn {
+  width: 66px !important;
+  height: 66px !important;
+  min-width: 66px !important;
+  min-height: 66px !important;
+  padding: 0 !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(37, 99, 235, .42) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #e0f2fe 46%, #dbeafe 100%) !important;
+  color: #0b63f6 !important;
+  box-shadow: 0 22px 48px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+  gap: 0 !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease !important;
+  position: relative !important;
+  z-index: 50 !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn)::after,
+.easy-script-shell-host .home-button::after,
+.voice-video-scope .voice-home-button::after,
+.easy-thumbnail-shell-host .homeBtn::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 8px !important;
+  border-radius: 17px !important;
+  border: 1px solid rgba(255,255,255,.75) !important;
+  pointer-events: none !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover,
+.easy-script-shell-host .home-button:hover,
+.voice-video-scope .voice-home-button:hover,
+.easy-thumbnail-shell-host .homeBtn:hover {
+  background: linear-gradient(145deg, #ffffff 0%, #bfdbfe 100%) !important;
+  border-color: rgba(37, 99, 235, .68) !important;
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 26px 56px rgba(37, 99, 235, .34), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+.es-mounted-screen :is(.es-home-icon, .homeIconBtn, .es-home-svg),
+.easy-script-shell-host :is(.es-home-icon, .es-home-svg),
+.voice-video-scope :is(.es-home-icon, .es-home-svg),
+.easy-thumbnail-shell-host :is(.homeIconBtn, .es-home-svg) {
+  width: 34px !important;
+  height: 34px !important;
+  display: block !important;
+  color: #0b63f6 !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 2.4 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  filter: drop-shadow(0 5px 10px rgba(37,99,235,.22)) !important;
+}
+.easy-thumbnail-shell-host .homeText { display: none !important; }
+
+/* Easy Studio in-app debug console */
+.es-debug-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 999999;
+  border: 1px solid rgba(37, 99, 235, .28);
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 15px;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 900;
+  box-shadow: 0 18px 38px rgba(37, 99, 235, .28);
+  cursor: pointer;
+}
+.es-debug-toggle.has-error {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  border-color: rgba(239,68,68,.35);
+}
+.es-debug-panel {
+  position: fixed;
+  right: 18px;
+  bottom: 68px;
+  width: min(720px, calc(100vw - 36px));
+  height: min(420px, calc(100vh - 110px));
+  z-index: 999998;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, .14);
+  background: rgba(255,255,255,.96);
+  color: #0f172a;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, .26);
+  backdrop-filter: blur(14px);
+}
+.es-debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, .28);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+.es-debug-header strong { font-size: 14px; }
+.es-debug-actions { display: flex; gap: 8px; }
+.es-debug-actions button {
+  border: 1px solid rgba(148,163,184,.36);
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.es-debug-body {
+  overflow: auto;
+  padding: 10px 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  background: #0b1120;
+  color: #e5e7eb;
+}
+.es-debug-empty { color: #94a3b8; padding: 12px; }
+.es-debug-line {
+  display: grid;
+  grid-template-columns: 76px 58px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(148,163,184,.12);
+}
+.es-debug-time { color: #94a3b8; }
+.es-debug-level {
+  text-transform: uppercase;
+  font-weight: 900;
+  color: #93c5fd;
+}
+.es-debug-line.warn .es-debug-level { color: #facc15; }
+.es-debug-line.error .es-debug-level { color: #fb7185; }
+.es-debug-line pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: inherit;
+  font-family: inherit;
+}
+
+
+/* Easy Studio icon pack integration */
+.es-app-icon {
+  width: 112px !important;
+  height: 112px !important;
+  border-radius: 32px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.es-app-icon-img {
+  display: block;
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 28px rgba(37, 99, 235, .20));
+}
+.es-app-card-clean:hover .es-app-icon-img {
+  transform: translateY(-2px) scale(1.035);
+}
+.es-app-card-clean .es-app-icon-img {
+  transition: transform .18s ease, filter .18s ease;
+}
+
+
+/* v19 final polish: dashboard logo + unified child app Home/title treatment */
+.es-studio-logo-img {
+  width: 136px;
+  height: 136px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 18px;
+  filter: drop-shadow(0 22px 38px rgba(37, 99, 235, .22));
+}
+.es-studio-title h1 { margin-top: 0 !important; }
+.easy-studio-child-title,
+.voice-studio-title .text-center,
+.easy-thumbnail-shell-host header > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+.easy-studio-child-eyebrow,
+.easy-thumbnail-shell-host .eyebrow {
+  margin: 0 !important;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+  color: #2563eb !important;
+}
+.easy-script-shell-host .topbar-title h1,
+.voice-video-scope .voice-studio-title h1,
+.easy-thumbnail-shell-host header h1 {
+  margin: 0 !important;
+  color: #0f172a !important;
+  font-weight: 1000 !important;
+  letter-spacing: -.035em !important;
+}
+.easy-script-shell-host .topbar,
+.easy-thumbnail-shell-host header {
+  position: relative !important;
+}
+.voice-video-scope {
+  position: relative !important;
+  min-height: 100vh;
+}
+/* One Home button style for Script / Voice / Thumbnail */
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn),
+.easy-script-shell-host .home-button,
+.voice-video-scope .voice-home-button,
+.easy-thumbnail-shell-host .homeBtn {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
+  padding: 0 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(37, 99, 235, .24) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #eef6ff 52%, #dbeafe 100%) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, .20), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+  gap: 0 !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease !important;
+  z-index: 80 !important;
+}
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover,
+.easy-script-shell-host .home-button:hover,
+.voice-video-scope .voice-home-button:hover,
+.easy-thumbnail-shell-host .homeBtn:hover {
+  transform: translateY(-2px) scale(1.035) !important;
+  border-color: rgba(37, 99, 235, .48) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #dbeafe 100%) !important;
+  box-shadow: 0 22px 48px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+.es-mounted-screen :is(.es-home-svg, .homeIconBtn),
+.easy-script-shell-host .es-home-svg,
+.voice-video-scope .es-home-svg,
+.easy-thumbnail-shell-host .es-home-svg,
+.easy-thumbnail-shell-host .homeIconBtn {
+  width: 31px !important;
+  height: 31px !important;
+  display: block !important;
+  color: #1d4ed8 !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 2.45 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  background: transparent !important;
+  filter: drop-shadow(0 4px 8px rgba(37,99,235,.18)) !important;
+}
+.easy-thumbnail-shell-host .homeText { display: none !important; }
+/* Right-align Home consistently */
+.easy-script-shell-host .top-actions { margin-left: auto !important; }
+.easy-script-shell-host .home-button { order: 999 !important; margin-left: 6px !important; }
+.voice-video-scope .voice-home-button {
+  position: fixed !important;
+  top: 22px !important;
+  right: 24px !important;
+}
+.easy-thumbnail-shell-host .headerActions { margin-left: auto !important; }
+.easy-thumbnail-shell-host .homeBtn { margin-left: 10px !important; }
+
+/* v20 final: About uses Easy Studio app icon */
+.es-about-app-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, .18);
+}
+.es-modal-icon img {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, .18);
+}
+.es-update-primary {
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 16px;
+  border: 0;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 14px 32px rgba(37, 99, 235, .22);
+}
+.es-update-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* v20 update panel polish: larger dashboard logo + icon-only update trigger */
+.es-studio-logo-img {
+  width: 184px !important;
+  height: 184px !important;
+  margin-bottom: 22px !important;
+  filter: drop-shadow(0 28px 46px rgba(37, 99, 235, .26)) !important;
+}
+.es-update-trigger-button,
+.es-about-button.es-update-trigger-button {
+  width: 54px !important;
+  height: 54px !important;
+  padding: 0 !important;
+  border-radius: 18px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  gap: 0 !important;
+  background: linear-gradient(145deg, #ffffff 0%, #eef6ff 100%) !important;
+  border: 1px solid rgba(37, 99, 235, .22) !important;
+  box-shadow: 0 14px 32px rgba(37, 99, 235, .16), inset 0 1px 0 rgba(255,255,255,.92) !important;
+  color: #1d4ed8 !important;
+}
+.es-update-trigger-button:hover,
+.es-about-button.es-update-trigger-button:hover {
+  transform: translateY(-2px) scale(1.035) !important;
+  border-color: rgba(37, 99, 235, .42) !important;
+  box-shadow: 0 18px 42px rgba(37, 99, 235, .22), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+.es-update-trigger-icon {
+  width: 28px !important;
+  height: 28px !important;
+  stroke: currentColor !important;
+  filter: drop-shadow(0 4px 8px rgba(37,99,235,.16));
+}
+.es-update-single-status {
+  margin: 20px 0 18px !important;
+  text-align: center !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  background: linear-gradient(135deg, #f8fbff, #eef6ff) !important;
+  border-color: rgba(37,99,235,.16) !important;
+}
+
+
+/* === Easy Studio Home Button Final Fix ===
+   Giữ 1 nút Home của app con, bỏ overlay của Shell.
+   Đồng bộ icon Home dạng premium ở Script / Voice / Thumbnail.
+*/
+.es-shell-home-button-fixed {
+  display: none !important;
+}
+
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn),
+.easy-script-shell-host .home-button,
+.voice-video-scope .voice-home-button,
+.easy-thumbnail-shell-host .homeBtn {
+  width: 66px !important;
+  height: 66px !important;
+  min-width: 66px !important;
+  min-height: 66px !important;
+  padding: 0 !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(37, 99, 235, .42) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #e0f2fe 46%, #dbeafe 100%) !important;
+  color: #0b63f6 !important;
+  box-shadow: 0 22px 48px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  font-size: 0 !important;
+  gap: 0 !important;
+  text-indent: 0 !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease !important;
+  z-index: 100000 !important;
+}
+
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn)::after,
+.easy-script-shell-host .home-button::after,
+.voice-video-scope .voice-home-button::after,
+.easy-thumbnail-shell-host .homeBtn::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 8px !important;
+  border-radius: 17px !important;
+  border: 1px solid rgba(255,255,255,.75) !important;
+  pointer-events: none !important;
+}
+
+.es-mounted-screen :is(.home-button, .voice-home-button, .homeBtn):hover,
+.easy-script-shell-host .home-button:hover,
+.voice-video-scope .voice-home-button:hover,
+.easy-thumbnail-shell-host .homeBtn:hover {
+  background: linear-gradient(145deg, #ffffff 0%, #bfdbfe 100%) !important;
+  border-color: rgba(37, 99, 235, .68) !important;
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 26px 56px rgba(37, 99, 235, .34), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+
+.es-mounted-screen :is(.es-home-icon, .homeIconBtn, .es-home-svg),
+.easy-script-shell-host :is(.es-home-icon, .es-home-svg),
+.voice-video-scope :is(.es-home-icon, .es-home-svg),
+.easy-thumbnail-shell-host :is(.homeIconBtn, .es-home-svg) {
+  width: 34px !important;
+  height: 34px !important;
+  display: block !important;
+  color: #0b63f6 !important;
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 2.4 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  filter: drop-shadow(0 5px 10px rgba(37,99,235,.22)) !important;
+}
+
+/* Voice không có topbar riêng nên cố định về góc phải trên, không lệch trái. */
+.voice-video-scope .voice-home-button {
+  position: fixed !important;
+  top: 52px !important;
+  right: 42px !important;
+  left: auto !important;
+}
+
+/* Thumbnail / Script dùng nút Home trong topbar sẵn có, không hiện chữ kèm theo. */
+.easy-thumbnail-shell-host .homeText,
+.easy-script-shell-host .home-button span:not(.es-home-icon) {
+  display: none !important;
+}
+
+
+
+/* Four-app dashboard alignment */
+@media (min-width: 980px) {
+  .es-app-grid-clean {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: min(1180px, 100%) !important;
+  }
+  .es-app-card-clean {
+    min-height: 205px;
+    padding-inline: 18px;
+  }
+}
