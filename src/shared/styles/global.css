@@ -980,3 +980,13 @@ button, input, textarea, select { font: inherit; }
     padding-inline: 18px;
   }
 }
+
+
+/* v30: larger Easy Studio dashboard logo */
+.es-dashboard .es-studio-logo-img,
+.es-studio-logo-img {
+  width: 220px !important;
+  height: 220px !important;
+  margin-bottom: 26px !important;
+  filter: drop-shadow(0 32px 56px rgba(37, 99, 235, .30)) !important;
+}

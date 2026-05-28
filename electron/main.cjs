@@ -14,6 +14,7 @@ try {
 const isDev = !app.isPackaged;
 
 let mainWindow = null;
+const appWindows = new Map();
 let updaterStatus = { status: 'idle', message: '' };
 let voiceBackendProcess = null;
 
@@ -586,6 +587,91 @@ function registerTemporaryShellHandlers() {
   safeHandle('file:merge-video-files', async () => ({ ok: false, error: 'Handler thật sẽ nối sau.' }));
 }
 
+function getAppMeta(appId) {
+  const apps = {
+    script: { title: 'Easy Studio — Easy Script', icon: 'easy-script.ico', width: 1500, height: 940, appUserModelId: 'com.easy-studio.easy-script' },
+    'voice-video': { title: 'Easy Studio — Easy Voice/Video', icon: 'easy-voice-video.ico', width: 1660, height: 1000, appUserModelId: 'com.easy-studio.easy-voice-video' },
+    thumbnail: { title: 'Easy Studio — Easy Thumbnail', icon: 'easy-thumbnail.ico', width: 1500, height: 940, appUserModelId: 'com.easy-studio.easy-thumbnail' },
+    'easy-voice-viet': { title: 'Easy Studio — Easy Voice Việt', icon: 'easy-voice-viet.ico', width: 1500, height: 940, appUserModelId: 'com.easy-studio.easy-voice-viet' }
+  };
+  return apps[appId] || null;
+}
+
+function getIconPath(iconFile) {
+  const iconPath = path.join(__dirname, '..', 'build', 'icons', iconFile || 'easy-studio.ico');
+  return fs.existsSync(iconPath) ? iconPath : undefined;
+}
+
+function loadRenderer(win, appId = 'home') {
+  const query = appId && appId !== 'home' ? `?app=${encodeURIComponent(appId)}` : '';
+  if (isDev) {
+    return win.loadURL(`http://localhost:5173${query}`);
+  }
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  if (appId && appId !== 'home') return win.loadFile(indexPath, { query: { app: appId } });
+  return win.loadFile(indexPath);
+}
+
+function createAppWindow(appId) {
+  const meta = getAppMeta(appId);
+  if (!meta) return { ok: false, error: `Unknown app: ${appId}` };
+
+  const existing = appWindows.get(appId);
+  if (existing && !existing.isDestroyed()) {
+    existing.focus();
+    return { ok: true, reused: true };
+  }
+
+  const win = new BrowserWindow({
+    width: meta.width,
+    height: meta.height,
+    minWidth: 1100,
+    minHeight: 720,
+    title: meta.title,
+    backgroundColor: '#f5f8ff',
+    autoHideMenuBar: true,
+    icon: getIconPath(meta.icon),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  try {
+    const iconPath = getIconPath(meta.icon);
+    if (iconPath) win.setIcon(iconPath);
+    if (process.platform === 'win32' && typeof win.setAppDetails === 'function') {
+      win.setAppDetails({
+        appId: meta.appUserModelId || `com.easy-studio.${appId}`,
+        appIconPath: iconPath,
+        appIconIndex: 0,
+        relaunchCommand: process.execPath,
+        relaunchDisplayName: meta.title
+      });
+    }
+  } catch {}
+
+  win.setMenuBarVisibility(false);
+  win.webContents.on('before-input-event', (event, input) => {
+    const key = String(input.key || '').toLowerCase();
+    if ((input.control && input.shift && (key === 'i' || key === 'k')) || key === 'f12') {
+      event.preventDefault();
+      if (win.webContents.isDevToolsOpened()) win.webContents.closeDevTools();
+      else win.webContents.openDevTools({ mode: 'detach' });
+    }
+  });
+
+  win.on('closed', () => {
+    if (appWindows.get(appId) === win) appWindows.delete(appId);
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
+  });
+
+  appWindows.set(appId, win);
+  loadRenderer(win, appId);
+  return { ok: true, reused: false };
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
@@ -604,8 +690,17 @@ function createWindow() {
 
   mainWindow = win;
   try {
-    const iconPath = path.join(__dirname, '..', 'build', 'icons', 'easy-studio.ico');
-    if (fs.existsSync(iconPath)) win.setIcon(iconPath);
+    const iconPath = getIconPath('easy-studio.ico');
+    if (iconPath) win.setIcon(iconPath);
+    if (process.platform === 'win32' && typeof win.setAppDetails === 'function') {
+      win.setAppDetails({
+        appId: 'com.easy-studio.shell',
+        appIconPath: iconPath,
+        appIconIndex: 0,
+        relaunchCommand: process.execPath,
+        relaunchDisplayName: 'Easy Studio'
+      });
+    }
   } catch {}
 
   win.setMenuBarVisibility(false);
@@ -619,11 +714,7 @@ function createWindow() {
     }
   });
 
-  if (isDev) {
-    win.loadURL('http://localhost:5173');
-  } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
+  loadRenderer(win, 'home');
 }
 
 
@@ -652,6 +743,22 @@ function registerEasyStudioEssentialHandlers() {
     if (!targetPath) return false;
     await shell.openPath(targetPath);
     return true;
+  });
+
+
+  forceHandle('easy-studio:open-app-window', async (_event, appId) => {
+    return createAppWindow(String(appId || ''));
+  });
+
+  forceHandle('easy-studio:close-current-app-window', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && win !== mainWindow) {
+      win.close();
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
+      return { ok: true, closed: true };
+    }
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
+    return { ok: true, closed: false };
   });
 
   forceHandle('easy-studio:set-active-app', async (_event, payload = {}) => {
@@ -762,6 +869,10 @@ function registerAppHandlers() {
   registerEasyStudioEssentialHandlers();
   try { require('./easy-voice-viet-handlers.cjs').registerEasyVoiceVietHandlers?.(); console.log('[easy-studio] easy-voice-viet handlers loaded'); }
   catch (err) { console.warn('[easy-voice-viet-handlers] failed:', err?.message || err); }
+}
+
+if (process.platform === 'win32') {
+  try { app.setAppUserModelId('com.easy-studio.shell'); } catch {}
 }
 
 app.whenReady().then(async () => {

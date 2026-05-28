@@ -6,6 +6,7 @@ export type VideoLayoutSettings = {
     outlineWidth: number;
     shadowDepth: number;
     maxLineChars: number;
+    boxWidth: number;
     colorA: string;
     colorR: string;
     colorBoth: string;
@@ -31,7 +32,7 @@ export type VideoLayoutSettings = {
 const STORAGE_KEY = "video-layout-settings-v4";
 export const DEFAULT_VIDEO_LAYOUT_SETTINGS: VideoLayoutSettings = {
   subtitle: {
-    offsetX: 0, marginBottom: 110, fontSize: 40, outlineWidth: 1.2, shadowDepth: 3.0, maxLineChars: 32,
+    offsetX: 0, marginBottom: 110, fontSize: 40, outlineWidth: 1.2, shadowDepth: 3.0, maxLineChars: 32, boxWidth: 760,
     colorA: "#37A5B4", colorR: "#BE6E55", colorBoth: "#C8AA5A", outlineColor: "#353535", backgroundColor: "rgba(0,0,0,0.18)"
   },
   wavebar: {
@@ -54,6 +55,7 @@ function mergeSettings(raw: any): VideoLayoutSettings {
       outlineWidth: clampNumber(s?.subtitle?.outlineWidth, DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.outlineWidth),
       shadowDepth: clampNumber(s?.subtitle?.shadowDepth, DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.shadowDepth),
       maxLineChars: clampNumber(s?.subtitle?.maxLineChars, DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.maxLineChars),
+      boxWidth: clampNumber(s?.subtitle?.boxWidth, DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.boxWidth),
       colorA: String(s?.subtitle?.colorA || DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.colorA),
       colorR: String(s?.subtitle?.colorR || DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.colorR),
       colorBoth: String(s?.subtitle?.colorBoth || DEFAULT_VIDEO_LAYOUT_SETTINGS.subtitle.colorBoth),

@@ -50,7 +50,7 @@ export default function WaveformDialog({
   const canOpenVideoLayout = !!waveBackgroundImagePath && !isExportingFinalMedia;
 
   return (
-    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-900/50 p-4">
+    <div className="waveform-dialog fixed inset-0 z-[85] flex items-center justify-center bg-slate-900/50 p-4">
       <div className="max-h-[88vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
@@ -65,8 +65,8 @@ export default function WaveformDialog({
           </button>
         </div>
 
-        <div className="space-y-4 overflow-auto p-5">
-          <div className="flex flex-col gap-2 md:flex-row md:flex-wrap">
+        <div className="waveform-dialog-body space-y-4 overflow-auto p-5">
+          <div className="waveform-toolbar flex flex-col gap-2 md:flex-row md:flex-wrap">
             <button
               type="button"
               onClick={onSelectAudio}
@@ -141,20 +141,39 @@ export default function WaveformDialog({
             </div>
           </div>
 
-          {isExportingFinalMedia || videoRenderProgress > 0 ? (
-            <div className="rounded-xl border border-purple-200 bg-purple-50 px-3 py-3">
-              <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                <span className="font-medium text-purple-900">Tiến trình dựng video</span>
-                <span className="font-semibold text-purple-700">{Math.round(videoRenderProgress)}%</span>
+          {isExportingFinalMedia || videoRenderProgress > 0 ? (() => {
+            const safeVideoProgress = Math.max(0, Math.min(100, Number(videoRenderProgress || 0)));
+            return (
+              <div className="rounded-2xl border bg-white p-4 shadow-sm video-export-progress-card">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-medium text-slate-700">Tiến trình dựng video</div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
+                    {Math.round(safeVideoProgress)}%
+                  </div>
+                </div>
+                <div className="relative h-5 overflow-hidden rounded-full bg-slate-200 shadow-inner">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 shadow-lg"
+                    style={{
+                      width: `${safeVideoProgress}%`,
+                      background: "linear-gradient(90deg, #d946ef 0%, #0ea5e9 50%, #34d399 100%)"
+                    }}
+                  />
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full"
+                    style={{
+                      width: `${safeVideoProgress}%`,
+                      opacity: 0.38,
+                      background: "linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.85) 50%, transparent 100%)",
+                      backgroundSize: "200% 100%",
+                      animation: "shine 1.8s linear infinite"
+                    }}
+                  />
+                </div>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-purple-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 transition-all duration-500"
-                  style={{ width: `${Math.max(0, Math.min(100, videoRenderProgress))}%` }}
-                />
-              </div>
-            </div>
-          ) : null}
+            );
+          })() : null}
 
           {waveError ? (
             <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">

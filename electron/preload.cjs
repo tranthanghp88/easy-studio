@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('easyStudio', {
   selectFolder: () => ipcRenderer.invoke('easy-studio:select-folder'),
   openPath: (targetPath) => ipcRenderer.invoke('easy-studio:open-path', targetPath),
+  openAppWindow: (appId) => ipcRenderer.invoke('easy-studio:open-app-window', appId),
+  closeCurrentAppWindow: () => ipcRenderer.invoke('easy-studio:close-current-app-window'),
   setActiveApp: (payload) => ipcRenderer.invoke('easy-studio:set-active-app', payload),
   debugPing: () => ipcRenderer.invoke('debug:ping'),
   getIpcStatus: () => ipcRenderer.invoke('debug:ipc-status'),

@@ -249,6 +249,7 @@ export default function App() {
   const [waveError, setWaveError] = useState("");
   const [waveStatus, setWaveStatus] = useState("");
   const [latestFinalVideoPath, setLatestFinalVideoPath] = useState("");
+  const [latestFinalOutputFolderPath, setLatestFinalOutputFolderPath] = useState("");
   const [isWaveReady, setIsWaveReady] = useState(false);
   const [isExportingFinalMedia, setIsExportingFinalMedia] = useState(false);
   const [videoRenderProgress, setVideoRenderProgress] = useState(0);
@@ -831,7 +832,7 @@ const handleSelectWaveAudio = async () => {
 };
 
   const handleOpenCurrentFolder = async () => {
-    const targetPath = String(latestFinalVideoPath || "").trim() || String(directoryName || "").trim() || waveAudioPath || waveBackgroundImagePath;
+    const targetPath = String(latestFinalVideoPath || "").trim() || String(latestFinalOutputFolderPath || "").trim() || String(directoryName || "").trim() || String(waveAudioPath || "").trim() || String(waveBackgroundImagePath || "").trim();
 
     if (!targetPath) {
       alert("Chưa có thư mục để mở.");
@@ -902,11 +903,15 @@ const handleSelectWaveAudio = async () => {
     try {
       progressTimer = window.setInterval(() => {
         setVideoRenderProgress((prev) => {
-          const next = prev < 70 ? prev + 7 : prev < 88 ? prev + 2 : prev;
+          // Simulated realtime UI progress for the long Electron/FFmpeg export pipeline.
+          // It intentionally stops at 97% until composeFinalMedia returns success.
+          const current = Number(prev || 0);
+          const next = current < 35 ? current + 3 : current < 72 ? current + 1.6 : current < 92 ? current + 0.8 : current < 97 ? current + 0.25 : 97;
           setProgress(next);
+          setWaveStatus((status) => status || "Đang dựng video...");
           return next;
         });
-      }, 900);
+      }, 300);
 
       const sourceDuration = Number(waveDuration || waveSurferRef.current?.getDuration?.() || 0);
       let initialTimelineForProcessor: TimelineBlock[]; // Raw timeline before processing
@@ -1004,7 +1009,11 @@ const handleSelectWaveAudio = async () => {
       }
 
       if (result?.finalVideoPath) {
-        setLatestFinalVideoPath(String(result.finalVideoPath));
+        const finalVideo = String(result.finalVideoPath);
+        setLatestFinalVideoPath(finalVideo);
+        const normalized = finalVideo.replace(/\\/g, "/");
+        const outDir = normalized.includes("/") ? normalized.slice(0, normalized.lastIndexOf("/")) : "";
+        setLatestFinalOutputFolderPath(outDir);
       }
 
       setWaveStatus("Đang hoàn tất file video...");
@@ -1028,34 +1037,28 @@ const handleSelectWaveAudio = async () => {
         window.clearInterval(progressTimer);
       }
       setIsExportingFinalMedia(false);
-      setVideoRenderProgress(0);
+      setVideoRenderProgress((prev) => (Number(prev || 0) >= 100 ? 100 : prev));
       setChunkInfo((prev) => ({
         ...prev,
         eta: prev.total > 0 && prev.done < prev.total ? prev.eta : ""
       }));
       setWaveError("");
-      setWaveStatus("");
-      setLatestFinalVideoPath("");
-      setWaveAudioPath(""); // Clear the audio path
-      setWaveBackgroundImagePath(""); // Clear the background image path
+      setWaveStatus((prev) => prev || "Sẵn sàng");
+      // Keep these paths after render so the "Mở thư mục" button can open the final output folder.
+      // Do not clear latestFinalVideoPath / latestFinalOutputFolderPath / source paths here.
       if (waveAudioBlobUrl) {
         URL.revokeObjectURL(waveAudioBlobUrl); // Revoke Blob URL
       }
-      setWaveAudioBlobUrl(null);
-      setIsWaveReady(false);
+      // Keep wave preview data after export so the user can adjust layout and export again.
+      // setWaveAudioBlobUrl(null);
+      // setIsWaveReady(false);
       // setIsWavePanelOpen(false); // Do not close the panel automatically
-      setWaveformTimeline([]);
-      setSubtitleCuesForWaveform([]);
+      // Keep preview timeline/subtitle data after export.
+      // setWaveformTimeline([]);
+      // setSubtitleCuesForWaveform([]);
 
-      // Destroy WaveSurfer and RegionsPlugin instances
-      try {
-        regionsPluginRef.current?.destroy();
-        waveSurferRef.current?.destroy();
-      } catch (e) {
-        console.error("Error destroying WaveSurfer/RegionsPlugin:", e);
-      }
-      regionsPluginRef.current = null;
-      waveSurferRef.current = null;
+      // Keep WaveSurfer/RegionsPlugin alive after export so the Dựng Video panel remains usable.
+      // They will be cleaned up when the panel closes or the audio changes.
 
       // Additional cleanup if needed:
       // clear/reset TimelineService cache - TBD, may be handled by garbage collection

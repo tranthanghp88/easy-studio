@@ -676,15 +676,28 @@ async function renderCustomBarsVideo(wavPath, outPath, durationSeconds, timeline
   await new Promise((resolve, reject) => {
     const args = [
       '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${width}x${height}`,
-      '-r', String(fps), '-i', '-', '-an', '-c:v', 'libx264', '-preset', 'veryfast',
-      '-crf', '18', '-pix_fmt', 'yuv420p', outPath
+      '-r', String(fps), '-i', '-', '-an', '-c:v', 'libx264', '-preset', 'ultrafast',
+      '-crf', '22', '-pix_fmt', 'yuv420p', outPath
     ];
 
     const proc = spawn('ffmpeg', args, { windowsHide: true, stdio: ['pipe', 'ignore', 'pipe'] });
     let stderr = '';
+    let settled = false;
+    const failOnce = (err) => {
+      if (settled) return;
+      settled = true;
+      try { proc.stdin?.destroy?.(); } catch {}
+      reject(new Error(err?.message || String(err || 'ffmpeg waveform pipe failed')));
+    };
     proc.stderr?.on('data', (d) => { stderr += String(d); });
-    proc.on('error', (err) => reject(new Error(err?.message || String(err))));
+    proc.stdin?.on('error', (err) => {
+      // Prevent uncaught "write EOF/EPIPE" crashes when ffmpeg closes stdin early.
+      failOnce(err);
+    });
+    proc.on('error', (err) => failOnce(err));
     proc.on('close', (code) => {
+      if (settled) return;
+      settled = true;
       if (code === 0) resolve();
       else reject(new Error(stderr || `ffmpeg exited with code ${code}`));
     });
@@ -786,10 +799,24 @@ async function renderCustomBarsVideo(wavPath, outPath, durationSeconds, timeline
         drawTopRoundedBarRgb(frame, width, height, x, y, barWidth, finalBarHeight, Math.min(borderRadius, Math.floor(barWidth / 2)), currentBarColor);
       }
 
-      proc.stdin.write(frame);
+      if (settled || proc.stdin.destroyed || !proc.stdin.writable) {
+        break;
+      }
+      try {
+        proc.stdin.write(frame, (err) => {
+          if (err) failOnce(err);
+        });
+      } catch (err) {
+        failOnce(err);
+        break;
+      }
     }
 
-    proc.stdin.end();
+    try {
+      if (!settled && proc.stdin.writable && !proc.stdin.destroyed) proc.stdin.end();
+    } catch (err) {
+      failOnce(err);
+    }
   });
 }
 
@@ -1287,6 +1314,10 @@ async function _old_composeFinalMediaFiles(payload = {}) {
   log(`[PIPELINE STEP 5] START: Video Blending (Background + Bars Overlay)`);
   log(`[PIPELINE STEP 5] INPUT: Background Image: ${backgroundImagePath}, Audio: ${finalAudioPath}, Bars Overlay Video: ${barsOverlayVideoPath}`);
   log(`[PIPELINE STEP 5] OUTPUT: ${videoWithBackgroundAndBarsPath}`);
+  const rawWavebarX = Number(layoutConfig?.wavebar?.xOffset ?? WAVEBAR_RENDER_CONFIG.xOffset ?? 30);
+  const rawWavebarY = Number(layoutConfig?.wavebar?.y ?? WAVEBAR_RENDER_CONFIG.y ?? 430);
+  const wavebarOverlayX = Math.round(Number.isFinite(rawWavebarX) ? rawWavebarX : 30);
+  const wavebarOverlayY = Math.round(Math.max(0, Math.min(720, Number.isFinite(rawWavebarY) ? rawWavebarY : 430)));
   const step1Args = [
     "-y",
     "-loop", "1",
@@ -1296,12 +1327,12 @@ async function _old_composeFinalMediaFiles(payload = {}) {
     "-filter_complex",
     `[0:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720[bg];` +
     `[2:v]colorkey=0x000000:0.12:0.02[wave];` +
-    `[bg][wave]overlay=x=(W-w)/2${Number(layoutConfig?.wavebar?.xOffset || WAVEBAR_RENDER_CONFIG.xOffset || 30) >= 0 ? "+" : ""}${Math.round(Number(layoutConfig?.wavebar?.xOffset || WAVEBAR_RENDER_CONFIG.xOffset || 30))}:y=430:format=auto[vout]`,
+    `[bg][wave]overlay=x=(W-w)/2${wavebarOverlayX >= 0 ? "+" : ""}${wavebarOverlayX}:y=${wavebarOverlayY}:format=auto[vout]`,
     "-map", "[vout]",
     "-map", "1:a",
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "20",
+    "-preset", "ultrafast",
+    "-crf", "22",
     "-pix_fmt", "yuv420p",
     "-profile:v", "high",
     "-c:a", "aac",
@@ -1342,8 +1373,8 @@ async function _old_composeFinalMediaFiles(payload = {}) {
     "-i", currentVideoPath, 
     "-vf", vfFilterArg,
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "18",
+    "-preset", "ultrafast",
+    "-crf", "22",
     "-pix_fmt", "yuv420p",
     "-c:a", "copy",
     videoWithSubtitlesPath
@@ -1434,8 +1465,8 @@ async function minimalExportVideo(payload = {}) {
     "-vf", vfFilterArg,
     "-shortest", // Finish encoding when the shortest input stream ends
     "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-crf", "20", // Quality (0-51, lower is better)
+    "-preset", "ultrafast",
+    "-crf", "22", // Quality (0-51, lower is better)
     "-pix_fmt", "yuv420p", // Pixel format for broad compatibility
     "-profile:v", "high", // H.264 profile
     "-c:a", "aac", // Audio codec
@@ -1606,8 +1637,8 @@ ipcMain.handle("file:convert-waveform-video", async (_event, payload = {}) => {
       "-map", "[vout]",
       "-map", "1:a",
       "-c:v", "libx264",
-      "-preset", "veryfast",
-      "-crf", "20",
+      "-preset", "ultrafast",
+      "-crf", "22",
       "-c:a", "aac",
       "-shortest",
       out
@@ -1661,8 +1692,8 @@ ipcMain.handle("file:merge-video-files", async (_event, payload = {}) => {
         "-map", "[outv]",
         "-map", "[outa]",
         "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "18",
+        "-preset", "ultrafast",
+        "-crf", "22",
         "-c:a", "aac",
         "-b:a", "192k",
         "-movflags", "+faststart",

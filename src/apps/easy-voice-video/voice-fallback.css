@@ -89,7 +89,7 @@
   .voice-video-scope .lg\:col-span-8 { grid-column: span 8 / span 8; }
 }
 /* Extra Tailwind-like utilities for mounted Easy Voice/Video */
-.voice-video-scope { min-height: 100vh; padding: 18px; background: #f8fafc !important; color: #0f172a !important; overflow: auto; }
+.voice-video-scope { min-height: 100vh; padding: 0 !important; background: #f8fafc !important; color: #0f172a !important; overflow: auto; }
 .voice-video-scope h1, .voice-video-scope h2, .voice-video-scope h3, .voice-video-scope p { margin-top: 0; }
 .voice-video-scope input, .voice-video-scope textarea, .voice-video-scope select { background: #fff; color: #0f172a; border: 1px solid #cbd5e1; }
 .voice-video-scope textarea { min-height: 132px; resize: vertical; }
@@ -739,4 +739,349 @@
 @media(max-width:1100px){
   .voice-video-globalTitle{padding:18px 78px 10px 20px}
   .voice-video-globalTitle h1{font-size:26px}
+}
+
+
+/* v22 fix: Video Layout Manager must keep its original Tailwind-like UI and live preview. */
+.voice-video-scope .video-layout-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 110000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  background: rgba(15, 23, 42, .46) !important;
+}
+.voice-video-scope .video-layout-dialog > div {
+  width: 100% !important;
+  max-width: 72rem !important;
+  max-height: 92vh !important;
+  overflow: hidden !important;
+  border-radius: 1rem !important;
+  background: #ffffff !important;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, .28) !important;
+  color: #0f172a !important;
+}
+.voice-video-scope .video-layout-dialog button {
+  min-height: auto !important;
+  height: auto !important;
+  width: auto !important;
+  min-width: auto !important;
+  padding: .5rem 1rem !important;
+  border-radius: 9999px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .35rem !important;
+  font-size: .875rem !important;
+  line-height: 1.25rem !important;
+  font-weight: 600 !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  transform: none !important;
+}
+.voice-video-scope .video-layout-dialog .bg-slate-100 { background-color: #f1f5f9 !important; color: #334155 !important; }
+.voice-video-scope .video-layout-dialog .bg-slate-900 { background-color: #0f172a !important; color: #ffffff !important; }
+.voice-video-scope .video-layout-dialog .hover\:bg-slate-200:hover { background-color: #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .hover\:bg-slate-800:hover { background-color: #1e293b !important; }
+.voice-video-scope .video-layout-dialog .grid { display: grid !important; }
+.voice-video-scope .video-layout-dialog .lg\:grid-cols-\[1\.2fr_1fr\] { grid-template-columns: 1.2fr 1fr !important; }
+.voice-video-scope .video-layout-dialog .gap-0 { gap: 0 !important; }
+.voice-video-scope .video-layout-dialog .max-h-\[80vh\] { max-height: 80vh !important; }
+.voice-video-scope .video-layout-dialog .overflow-auto { overflow: auto !important; }
+.voice-video-scope .video-layout-dialog .overflow-hidden { overflow: hidden !important; }
+.voice-video-scope .video-layout-dialog .relative { position: relative !important; }
+.voice-video-scope .video-layout-dialog .absolute { position: absolute !important; }
+.voice-video-scope .video-layout-dialog .inset-0 { inset: 0 !important; }
+.voice-video-scope .video-layout-dialog .left-1\/2 { left: 50% !important; }
+.voice-video-scope .video-layout-dialog .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.voice-video-scope .video-layout-dialog .w-full { width: 100% !important; }
+.voice-video-scope .video-layout-dialog .max-w-\[720px\] { max-width: 720px !important; }
+.voice-video-scope .video-layout-dialog .max-w-\[78\%\] { max-width: 78% !important; }
+.voice-video-scope .video-layout-dialog .aspect-video { aspect-ratio: 16 / 9 !important; }
+.voice-video-scope .video-layout-dialog .h-full { height: 100% !important; }
+.voice-video-scope .video-layout-dialog .object-cover { object-fit: cover !important; }
+.voice-video-scope .video-layout-dialog .flex { display: flex !important; }
+.voice-video-scope .video-layout-dialog .inline-flex { display: inline-flex !important; }
+.voice-video-scope .video-layout-dialog .flex-col { flex-direction: column !important; }
+.voice-video-scope .video-layout-dialog .flex-wrap { flex-wrap: wrap !important; }
+.voice-video-scope .video-layout-dialog .items-center { align-items: center !important; }
+.voice-video-scope .video-layout-dialog .items-end { align-items: flex-end !important; }
+.voice-video-scope .video-layout-dialog .justify-center { justify-content: center !important; }
+.voice-video-scope .video-layout-dialog .justify-between { justify-content: space-between !important; }
+.voice-video-scope .video-layout-dialog .gap-1 { gap: .25rem !important; }
+.voice-video-scope .video-layout-dialog .gap-2 { gap: .5rem !important; }
+.voice-video-scope .video-layout-dialog .gap-3 { gap: .75rem !important; }
+.voice-video-scope .video-layout-dialog .rounded-xl { border-radius: .75rem !important; }
+.voice-video-scope .video-layout-dialog .rounded-2xl { border-radius: 1rem !important; }
+.voice-video-scope .video-layout-dialog .border { border: 1px solid #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .border-b { border-bottom: 1px solid #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .border-r { border-right: 1px solid #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .border-slate-200 { border-color: #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .border-slate-300 { border-color: #cbd5e1 !important; }
+.voice-video-scope .video-layout-dialog .bg-white { background-color: #ffffff !important; }
+.voice-video-scope .video-layout-dialog .bg-slate-50 { background-color: #f8fafc !important; }
+.voice-video-scope .video-layout-dialog .bg-slate-200 { background-color: #e2e8f0 !important; }
+.voice-video-scope .video-layout-dialog .bg-gradient-to-b { background-image: linear-gradient(to bottom, var(--tw-gradient-stops)) !important; }
+.voice-video-scope .video-layout-dialog .from-\[\#4a4039\] { --tw-gradient-from: #4a4039; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(74,64,57,0)); }
+.voice-video-scope .video-layout-dialog .via-\[\#665448\] { --tw-gradient-stops: var(--tw-gradient-from), #665448, var(--tw-gradient-to, rgba(102,84,72,0)); }
+.voice-video-scope .video-layout-dialog .to-\[\#8c6d52\] { --tw-gradient-to: #8c6d52; }
+.voice-video-scope .video-layout-dialog .p-4 { padding: 1rem !important; }
+.voice-video-scope .video-layout-dialog .p-5 { padding: 1.25rem !important; }
+.voice-video-scope .video-layout-dialog .px-3 { padding-left: .75rem !important; padding-right: .75rem !important; }
+.voice-video-scope .video-layout-dialog .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.voice-video-scope .video-layout-dialog .px-5 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+.voice-video-scope .video-layout-dialog .py-2 { padding-top: .5rem !important; padding-bottom: .5rem !important; }
+.voice-video-scope .video-layout-dialog .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+.voice-video-scope .video-layout-dialog .mb-1 { margin-bottom: .25rem !important; }
+.voice-video-scope .video-layout-dialog .mb-2 { margin-bottom: .5rem !important; }
+.voice-video-scope .video-layout-dialog .mb-3 { margin-bottom: .75rem !important; }
+.voice-video-scope .video-layout-dialog .mb-6 { margin-bottom: 1.5rem !important; }
+.voice-video-scope .video-layout-dialog .mt-2 { margin-top: .5rem !important; }
+.voice-video-scope .video-layout-dialog .text-xs { font-size: .75rem !important; line-height: 1rem !important; }
+.voice-video-scope .video-layout-dialog .text-sm { font-size: .875rem !important; line-height: 1.25rem !important; }
+.voice-video-scope .video-layout-dialog .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+.voice-video-scope .video-layout-dialog .text-center { text-align: center !important; }
+.voice-video-scope .video-layout-dialog .font-medium { font-weight: 500 !important; }
+.voice-video-scope .video-layout-dialog .font-semibold { font-weight: 600 !important; }
+.voice-video-scope .video-layout-dialog .font-bold { font-weight: 700 !important; }
+.voice-video-scope .video-layout-dialog .uppercase { text-transform: uppercase !important; }
+.voice-video-scope .video-layout-dialog .tracking-wide { letter-spacing: .025em !important; }
+.voice-video-scope .video-layout-dialog .text-slate-500 { color: #64748b !important; }
+.voice-video-scope .video-layout-dialog .text-slate-600 { color: #475569 !important; }
+.voice-video-scope .video-layout-dialog .text-slate-700 { color: #334155 !important; }
+.voice-video-scope .video-layout-dialog .text-slate-800 { color: #1e293b !important; }
+.voice-video-scope .video-layout-dialog .text-white\/80 { color: rgba(255,255,255,.8) !important; }
+.voice-video-scope .video-layout-dialog input[type='range'] { width: 100% !important; accent-color: #059669 !important; padding: 0 !important; min-height: auto !important; }
+.voice-video-scope .video-layout-dialog input[type='color'] { width: 42px !important; height: 32px !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+.voice-video-scope .video-layout-dialog input:not([type='range']):not([type='color']) {
+  width: 100% !important;
+  border-radius: .75rem !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  padding: .5rem .75rem !important;
+  font-size: .875rem !important;
+}
+@media (max-width: 1023px) {
+  .voice-video-scope .video-layout-dialog .lg\:grid-cols-\[1\.2fr_1fr\] { grid-template-columns: 1fr !important; }
+  .voice-video-scope .video-layout-dialog .border-r { border-right: 0 !important; border-bottom: 1px solid #e2e8f0 !important; }
+}
+
+/* v23: Strong scoped fixes for Dựng Video and Video Layout live drag preview. */
+.voice-video-scope .waveform-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 85000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  background: rgba(15,23,42,.50) !important;
+}
+.voice-video-scope .waveform-dialog > div {
+  width: 100% !important;
+  max-width: 64rem !important;
+  max-height: 88vh !important;
+  overflow: hidden !important;
+  border-radius: 1.25rem !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  box-shadow: 0 28px 70px rgba(15,23,42,.32) !important;
+}
+.voice-video-scope .waveform-toolbar {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: .6rem !important;
+  align-items: center !important;
+}
+.voice-video-scope .waveform-toolbar button {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .5rem !important;
+  padding: .72rem 1.05rem !important;
+  border: 0 !important;
+  border-radius: .9rem !important;
+  color: #fff !important;
+  font-size: .92rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  text-indent: 0 !important;
+  box-shadow: 0 13px 26px rgba(15,23,42,.14) !important;
+  transform: none !important;
+}
+.voice-video-scope .waveform-toolbar button:nth-child(1) { background: #334155 !important; }
+.voice-video-scope .waveform-toolbar button:nth-child(2) { background: linear-gradient(135deg,#2563eb,#7c3aed) !important; }
+.voice-video-scope .waveform-toolbar button:nth-child(3) { background: #059669 !important; }
+.voice-video-scope .waveform-toolbar button:nth-child(4) { background: #0284c7 !important; }
+.voice-video-scope .waveform-toolbar button:nth-child(5) { background: linear-gradient(135deg,#9333ea,#7c3aed) !important; }
+.voice-video-scope .waveform-toolbar button:disabled {
+  opacity: .55 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(.15) !important;
+}
+
+.voice-video-scope .vlm-dialog {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 110000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  background: rgba(15, 23, 42, .50) !important;
+  color: #0f172a !important;
+}
+.voice-video-scope .vlm-panel {
+  width: 100% !important;
+  max-width: 78rem !important;
+  max-height: 93vh !important;
+  overflow: hidden !important;
+  border-radius: 1.35rem !important;
+  background: #ffffff !important;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, .34) !important;
+}
+.voice-video-scope .vlm-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  padding: 1rem 1.2rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: linear-gradient(180deg,#ffffff,#f8fafc) !important;
+}
+.voice-video-scope .vlm-title { font-size: 1.16rem !important; font-weight: 900 !important; color: #0f172a !important; }
+.voice-video-scope .vlm-subtitle-head { margin-top: .16rem !important; font-size: .82rem !important; color: #64748b !important; }
+.voice-video-scope .vlm-header-actions { display: flex !important; gap: .5rem !important; flex-wrap: wrap !important; justify-content: flex-end !important; }
+.voice-video-scope .vlm-btn {
+  width: auto !important;
+  height: auto !important;
+  min-height: 38px !important;
+  min-width: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: .6rem .9rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  font-size: .84rem !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+}
+.voice-video-scope .vlm-btn-smart { color: #fff !important; background: linear-gradient(135deg,#2563eb,#7c3aed) !important; box-shadow: 0 12px 28px rgba(37,99,235,.22) !important; }
+.voice-video-scope .vlm-btn-secondary { color: #334155 !important; background: #f1f5f9 !important; }
+.voice-video-scope .vlm-btn-dark { color: #fff !important; background: #0f172a !important; }
+.voice-video-scope .vlm-body { display: grid !important; grid-template-columns: minmax(460px,1.18fr) minmax(360px,.82fr) !important; min-height: 0 !important; }
+.voice-video-scope .vlm-preview-col { padding: 1rem !important; border-right: 1px solid #e2e8f0 !important; min-width: 0 !important; }
+.voice-video-scope .vlm-controls-col { max-height: calc(93vh - 76px) !important; overflow: auto !important; padding: 1rem !important; min-width: 0 !important; }
+.voice-video-scope .vlm-preview-card { border: 1px solid #e2e8f0 !important; border-radius: 1.15rem !important; background: #f8fafc !important; padding: 1rem !important; }
+.voice-video-scope .vlm-preview-title-row { display: flex !important; justify-content: space-between !important; gap: 1rem !important; align-items: flex-start !important; margin-bottom: .75rem !important; }
+.voice-video-scope .vlm-preview-title { font-size: .98rem !important; font-weight: 900 !important; color: #0f172a !important; }
+.voice-video-scope .vlm-preview-note { margin-top: .1rem !important; font-size: .76rem !important; color: #64748b !important; }
+.voice-video-scope .vlm-drag-chip { flex: none !important; border-radius: 999px !important; padding: .35rem .62rem !important; background: #dbeafe !important; color: #1d4ed8 !important; font-weight: 850 !important; font-size: .72rem !important; }
+.voice-video-scope .vlm-preview-toggle-row { display: flex !important; flex-wrap: wrap !important; gap: .65rem !important; align-items: center !important; margin-bottom: .75rem !important; padding: .58rem .75rem !important; border: 1px solid #e2e8f0 !important; border-radius: .95rem !important; background: #fff !important; color: #334155 !important; font-size: .78rem !important; font-weight: 750 !important; }
+.voice-video-scope .vlm-preview-toggle-row label { display: inline-flex !important; gap: .28rem !important; align-items: center !important; }
+.voice-video-scope .vlm-frame { position: relative !important; width: 100% !important; max-width: 760px !important; aspect-ratio: 16/9 !important; margin: 0 auto !important; overflow: hidden !important; border-radius: 1rem !important; border: 1px solid #cbd5e1 !important; background: #e2e8f0 !important; user-select: none !important; touch-action: none !important; }
+.voice-video-scope .vlm-frame > img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; }
+.voice-video-scope .vlm-fake-bg { position: absolute !important; inset: 0 !important; background: linear-gradient(180deg,#4a4039,#665448 52%,#8c6d52) !important; }
+.voice-video-scope .vlm-wavebar { position: absolute !important; display: flex !important; align-items: flex-end !important; justify-content: center !important; cursor: grab !important; border: 1px dashed rgba(255,255,255,.35) !important; border-radius: .75rem !important; }
+.voice-video-scope .vlm-wavebar.is-dragging, .voice-video-scope .vlm-subtitle.is-dragging { cursor: grabbing !important; outline: 3px solid rgba(59,130,246,.6) !important; }
+.voice-video-scope .vlm-bars { display: flex !important; align-items: flex-end !important; pointer-events: none !important; }
+.voice-video-scope .vlm-bars span { display: block !important; border-top-left-radius: 999px !important; border-top-right-radius: 999px !important; box-shadow: 0 0 8px rgba(255,255,255,.2) !important; }
+.voice-video-scope .vlm-subtitle { position: absolute !important; left: 50% !important; width: 100% !important; max-width: 78% !important; text-align: center !important; font-weight: 900 !important; line-height: 1.18 !important; cursor: grab !important; }
+.voice-video-scope .vlm-subtitle-box { display: inline-flex !important; flex-direction: column !important; gap: .25rem !important; border-radius: 1rem !important; padding: .45rem .9rem !important; pointer-events: none !important; }
+.voice-video-scope .vlm-empty-sub { color: rgba(255,255,255,.82) !important; }
+.voice-video-scope .vlm-drag-label { position: absolute !important; left: 50% !important; top: -22px !important; transform: translateX(-50%) !important; padding: .16rem .44rem !important; border-radius: 999px !important; background: rgba(15,23,42,.75) !important; color: #fff !important; font-size: .66rem !important; font-weight: 850 !important; opacity: .82 !important; pointer-events: none !important; }
+.voice-video-scope .vlm-preview-hint { margin-top: .55rem !important; color: #64748b !important; font-size: .76rem !important; }
+.voice-video-scope .vlm-section { margin-bottom: 1.1rem !important; }
+.voice-video-scope .vlm-section-title { margin-bottom: .62rem !important; color: #64748b !important; font-size: .75rem !important; font-weight: 900 !important; letter-spacing: .04em !important; text-transform: uppercase !important; }
+.voice-video-scope .vlm-control-grid { display: grid !important; gap: .72rem !important; }
+.voice-video-scope .vlm-slider-row { display: block !important; }
+.voice-video-scope .vlm-slider-head { display: flex !important; justify-content: space-between !important; gap: 1rem !important; margin-bottom: .28rem !important; color: #475569 !important; font-size: .76rem !important; font-weight: 850 !important; }
+.voice-video-scope .vlm-slider-row input[type='range'] { width: 100% !important; min-height: auto !important; padding: 0 !important; accent-color: #2563eb !important; }
+.voice-video-scope .vlm-color-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: .8rem !important; border: 1px solid #e2e8f0 !important; border-radius: .9rem !important; background: #fff !important; padding: .6rem .75rem !important; color: #334155 !important; font-size: .82rem !important; font-weight: 800 !important; }
+.voice-video-scope .vlm-color-row input[type='color'] { width: 42px !important; height: 32px !important; min-height: auto !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+.voice-video-scope .vlm-text-row { display: grid !important; gap: .35rem !important; color: #475569 !important; font-size: .78rem !important; font-weight: 850 !important; }
+.voice-video-scope .vlm-text-row input { width: 100% !important; border: 1px solid #e2e8f0 !important; border-radius: .9rem !important; background: #fff !important; color: #0f172a !important; padding: .62rem .75rem !important; font-size: .85rem !important; }
+@media (max-width: 1023px) {
+  .voice-video-scope .vlm-body { grid-template-columns: 1fr !important; }
+  .voice-video-scope .vlm-preview-col { border-right: 0 !important; border-bottom: 1px solid #e2e8f0 !important; }
+  .voice-video-scope .vlm-controls-col { max-height: 42vh !important; }
+}
+
+.voice-video-scope .vlm-subtitle-box { white-space: normal !important; overflow-wrap: anywhere !important; align-items: center !important; justify-content: center !important; }
+.voice-video-scope .vlm-subtitle-box > div { max-width: 100% !important; white-space: normal !important; overflow-wrap: anywhere !important; text-align: center !important; }
+
+/* v27: keep subtitle preview toggles in one horizontal row */
+.voice-video-scope .vlm-preview-toggle-row-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 18px !important;
+}
+.voice-video-scope .vlm-preview-toggle-row-horizontal .vlm-sub-toggle {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  min-width: auto !important;
+}
+.voice-video-scope .vlm-preview-toggle-row-horizontal .vlm-sub-toggle span {
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+
+/* v30: full-width child header and clean app background */
+.voice-video-scope .voice-video-appLight {
+  min-height: 100vh !important;
+  width: 100% !important;
+  background: linear-gradient(135deg,#f8fbff 0%,#f3f6fb 48%,#f7f3ff 100%) !important;
+}
+.voice-video-scope .voice-video-globalTitle {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 28px 104px 18px 104px !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(90deg,#ffffff 0%,#f8fbff 58%,#eef6ff 100%) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 12px 32px rgba(15,23,42,.045) !important;
+}
+.voice-video-scope .voice-video-globalTitle div {
+  font-size: 13px !important;
+  letter-spacing: .24em !important;
+  color: #2563eb !important;
+}
+.voice-video-scope .voice-video-globalTitle h1 {
+  font-size: 34px !important;
+  line-height: 1.08 !important;
+  color: #0f172a !important;
+}
+.voice-video-scope .voice-video-contentWrap {
+  padding: 24px 28px 28px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+@media (max-width: 900px) {
+  .voice-video-scope .voice-video-globalTitle { padding-left: 24px !important; padding-right: 90px !important; }
+  .voice-video-scope .voice-video-globalTitle h1 { font-size: 28px !important; }
 }
