@@ -706,7 +706,7 @@ export default function KeyManagerPanel({
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div className="font-semibold text-slate-800">Xoay key TTS</div>
-                <div className="text-xs text-slate-500">Bật/tắt nguồn tạo voice. Auto sẽ ưu tiên Vertex, nếu lỗi quota sẽ chuyển sang Gemini key pool.</div>
+                
               </div>
               {savingProviderSettings ? <span className="text-xs text-slate-500">Đang lưu...</span> : null}
             </div>

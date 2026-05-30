@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
+const { GoogleAuth } = require('google-auth-library');
 let ffmpegPath = null;
 function getFfmpegPath(){
   if(ffmpegPath) return ffmpegPath;
@@ -106,13 +107,17 @@ function writeSilentWav(file, ms=500, sampleRate=24000, channels=1){
 
 function extractInlineAudio(json){
   const parts = json?.candidates?.[0]?.content?.parts || [];
-  const audioPart = parts.find(p => p?.inlineData?.data || p?.inline_data?.data);
-  if(!audioPart) return null;
-  const inline = audioPart.inlineData || audioPart.inline_data;
-  return {
-    buffer: Buffer.from(inline.data, 'base64'),
-    mimeType: inline.mimeType || inline.mime_type || ''
-  };
+  for(const part of parts){
+    const inline = part?.inlineData || part?.inline_data;
+    if(!inline?.data) continue;
+    const mimeType = inline.mimeType || inline.mime_type || '';
+    const buffer = Buffer.from(inline.data, 'base64');
+    // Chỉ nhận audio thật. Nếu Gemini trả text/JSON dạng inlineData thì bỏ qua để retry an toàn.
+    if(/text|json|html|xml/i.test(mimeType)) continue;
+    if(buffer.length < 1000 || looksLikeText(buffer)) continue;
+    return { buffer, mimeType };
+  }
+  return null;
 }
 function hasRiffHeader(buf){ return Buffer.isBuffer(buf) && buf.length > 44 && buf.slice(0,4).toString('ascii') === 'RIFF' && buf.slice(8,12).toString('ascii') === 'WAVE'; }
 function hasMp3Header(buf){ return Buffer.isBuffer(buf) && buf.length > 4 && (buf.slice(0,3).toString('ascii') === 'ID3' || (buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0)); }
@@ -165,6 +170,48 @@ async function isAudioFileValid(file){
     return false;
   }catch{ return false; }
 }
+
+async function postProcessManualToneAudio(inputFile, outputFile, tone){
+  // V46: Gemini/Vertex chỉ nhận text sạch. Nhấn/kéo dài được làm bằng text transform + hậu kỳ audio.
+  const t = String(tone || 'normal');
+  let filter = '';
+  if(t === 'emphasis' || t === 'emphasisMixed'){
+    // Làm chunk có markup nổi hơn mà không cần đưa instruction vào TTS.
+    filter = 'volume=1.22,acompressor=threshold=-20dB:ratio=2.6:attack=5:release=70,equalizer=f=2600:t=q:w=1:g=1.8,atempo=1.015';
+  } else if(t === 'stretch' || t === 'stretchMixed'){
+    // Text đã được kéo dài nhẹ; hậu kỳ chỉ làm mềm và chậm rất nhẹ.
+    filter = 'volume=1.07,atempo=0.975';
+  }
+  if(filter){
+    await runFfmpeg(['-y','-i',inputFile,'-af',filter,'-ac','1','-ar','24000','-c:a','pcm_s16le',outputFile]);
+    return outputFile;
+  }
+  fs.copyFileSync(inputFile, outputFile);
+  return outputFile;
+}
+
+async function postProcessFinalVoiceAudio(inputFile, outputFile, payload={}){
+  // Tạo lại cảm giác năng lượng tổng thể giống các bản trước, nhưng không dùng prompt hướng dẫn.
+  const mode = String(payload.mode || 'ads');
+  const style = String(payload.style || '');
+  const speed = String(payload.speed || '');
+  let filter = '';
+  if(mode === 'ads'){
+    filter = 'volume=1.08,acompressor=threshold=-22dB:ratio=2.4:attack=6:release=85,equalizer=f=2800:t=q:w=1:g=1.6';
+    if(style === 'Năng lượng' || speed === 'Nhanh') filter += ',atempo=1.025';
+  } else if(mode === 'review'){
+    filter = 'volume=1.04,acompressor=threshold=-23dB:ratio=1.8:attack=10:release=110,equalizer=f=2200:t=q:w=1:g=0.9';
+  } else if(mode === 'story'){
+    filter = 'volume=1.02,acompressor=threshold=-24dB:ratio=1.5:attack=15:release=130';
+  }
+  if(filter){
+    await runFfmpeg(['-y','-i',inputFile,'-af',filter,'-ac','1','-ar','24000','-c:a','pcm_s16le',outputFile]);
+    return outputFile;
+  }
+  fs.copyFileSync(inputFile, outputFile);
+  return outputFile;
+}
+
 async function getCacheStats(){
   const audioDir=cacheDir(), finalDir=finalCacheDir();
   const chunkFiles=fs.readdirSync(audioDir).filter(f=>f.endsWith('.wav'));
@@ -175,20 +222,37 @@ function extractGeminiText(json){
   const parts = json?.candidates?.[0]?.content?.parts || [];
   return parts.map(p => p?.text).filter(Boolean).join(' ').trim();
 }
+
+async function getVertexAccessTokenFromJson(jsonPath){
+  if(!jsonPath || !fs.existsSync(jsonPath)) return '';
+  const auth = new GoogleAuth({
+    keyFile: jsonPath,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  });
+  const client = await auth.getClient();
+  const token = await client.getAccessToken();
+  return typeof token === 'string' ? token : (token && token.token) || '';
+}
+function hasVertexConfig(payload){
+  return Boolean((payload.accessToken || payload.vertexJsonPath) && payload.projectId && payload.location);
+}
+
 async function callGeminiTTS({apiKey, model, text, voiceName, prompt}){
   if(!apiKey) throw new Error('Chưa nhập Gemini API Key');
   const finalModel = String(model||'').trim() || 'gemini-2.5-flash-preview-tts';
   const finalVoice = String(voiceName||'').trim() || 'Kore';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${finalModel}:generateContent?key=${apiKey}`;
+  // V47: khôi phục chất giọng quảng cáo giống V38 bằng prompt ngắn,
+  // nhưng không đưa markup kỹ thuật (*, ~, ||) hay thẻ [NHẤN MẠNH] vào nội dung đọc.
+  const cleanSpeakText = String(text||'').trim();
+  const promptText = String(prompt || '').trim();
+  const spokenText = promptText
+    ? `${promptText}\n\nCHỈ ĐỌC NỘI DUNG SAU, KHÔNG ĐỌC DÒNG HƯỚNG DẪN NÀY:\n${cleanSpeakText}`
+    : cleanSpeakText;
   const body = {
     contents:[{
       role:'user',
-      parts:[{text:`${prompt}
-
-Hãy tạo AUDIO tiếng Việt trực tiếp. Không trả lời bằng chữ.
-
-Nội dung cần đọc:
-${text}`}]
+      parts:[{text: spokenText}]
     }],
     generationConfig:{
       responseModalities:['AUDIO'],
@@ -205,16 +269,29 @@ ${text}`}]
   const detail = textReply ? ` Gemini trả về text thay vì audio: ${textReply.slice(0,240)}` : ' Không có inline audio trong response.';
   throw new Error(`Gemini không trả về audio.${reason}${detail} Hãy thử đổi Voice sang Kore/Puck/Leda/Charon, đổi Model về gemini-2.5-flash-preview-tts, hoặc rút ngắn đoạn preview.`);
 }
-async function callVertexTTS({accessToken, projectId, location, model, text, voiceName, prompt}){
-  if(!accessToken || !projectId || !location) throw new Error('Vertex AI cần Access Token, Project ID và Location');
+async function callVertexTTS({accessToken, vertexJsonPath, projectId, location, model, text, voiceName, prompt}){
+  let token = accessToken || '';
+  if(!token && vertexJsonPath) token = await getVertexAccessTokenFromJson(vertexJsonPath);
+  if(!token || !projectId || !location) throw new Error('Vertex AI cần Access Token hoặc Service Account JSON, Project ID và Location');
   const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:generateContent`;
-  const body = { contents:[{role:'user',parts:[{text:`${prompt}\n\nNội dung cần đọc:\n${text}`}]}], generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName}}}}};
-  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${accessToken}`},body:JSON.stringify(body)});
+  // V47: dùng prompt ngắn để lấy lại chất giọng quảng cáo, không dùng systemInstruction.
+  // Nội dung đọc vẫn là text sạch sau parser, không còn *, ~, || hoặc tag kỹ thuật.
+  const cleanSpeakText = String(text||'').trim();
+  const promptText = String(prompt || '').trim();
+  const spokenText = promptText
+    ? `${promptText}\n\nCHỈ ĐỌC NỘI DUNG SAU, KHÔNG ĐỌC DÒNG HƯỚNG DẪN NÀY:\n${cleanSpeakText}`
+    : cleanSpeakText;
+  const body = {
+    contents:[{role:'user',parts:[{text: spokenText}]}],
+    generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName}}}}
+  };
+  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(body)});
   if(!res.ok){ const err=await res.text(); throw new Error(`Vertex lỗi ${res.status}: ${err.slice(0,600)}`); }
   const json = await res.json();
-  const part = json?.candidates?.[0]?.content?.parts?.find(p=>p.inlineData?.data);
-  if(!part) throw new Error('Vertex không trả về audio.');
-  return { buffer: Buffer.from(part.inlineData.data,'base64'), mimeType: part.inlineData.mimeType || part.inlineData.mime_type || '' };
+  const part = json?.candidates?.[0]?.content?.parts?.find(p=>p.inlineData?.data || p.inline_data?.data);
+  const inline = part?.inlineData || part?.inline_data;
+  if(!inline?.data) throw new Error('Vertex không trả về audio.');
+  return { buffer: Buffer.from(inline.data,'base64'), mimeType: inline.mimeType || inline.mime_type || '' };
 }
 
 function runFfmpeg(args){
@@ -245,18 +322,136 @@ async function concatAudio(files, output){
   }
   return output;
 }
-async function mixBgm(voiceFile,bgmFile,output,bgmVolume=0.18,voiceVolume=1){
+async function getAudioDurationSeconds(file){
+  return new Promise((resolve)=>{
+    const bin = getFfmpegPath();
+    if(!bin) return resolve(0);
+    const p = spawn(bin, ['-i', file], {windowsHide:true});
+    let err='';
+    p.stderr.on('data', d=>err += d.toString());
+    p.on('close', ()=>{
+      const m = err.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+      if(!m) return resolve(0);
+      resolve(Number(m[1])*3600 + Number(m[2])*60 + Number(m[3]));
+    });
+  });
+}
+async function crossfadeConcatAudio(pieces, output, crossfadeSeconds=2){
+  const validPieces = (pieces || []).filter(Boolean);
+  if(validPieces.length === 0) throw new Error('Không có đoạn BGM để ghép.');
+  if(validPieces.length === 1){ fs.copyFileSync(validPieces[0], output); return output; }
+  let current = validPieces[0];
+  const tempOutputs = [];
+  for(let i=1;i<validPieces.length;i++){
+    const next = validPieces[i];
+    const d1 = await getAudioDurationSeconds(current).catch(()=>0);
+    const d2 = await getAudioDurationSeconds(next).catch(()=>0);
+    const cf = Math.max(0.15, Math.min(Number(crossfadeSeconds || 2), Math.max(0.2, d1/3), Math.max(0.2, d2/3)));
+    const out = path.join(appData(), `smart-bgm-xfade-${Date.now()}-${i}-${Math.random().toString(16).slice(2)}.wav`);
+    tempOutputs.push(out);
+    await runFfmpeg([
+      '-y','-i',current,'-i',next,
+      '-filter_complex',`[0:a]aformat=sample_fmts=fltp:sample_rates=24000:channel_layouts=stereo[a0];[1:a]aformat=sample_fmts=fltp:sample_rates=24000:channel_layouts=stereo[a1];[a0][a1]acrossfade=d=${cf.toFixed(3)}:c1=tri:c2=tri[a]`,
+      '-map','[a]','-c:a','pcm_s16le',out
+    ]);
+    if(i > 1 && current.startsWith(appData())) fs.rmSync(current,{force:true});
+    current = out;
+  }
+  fs.copyFileSync(current, output);
+  tempOutputs.forEach(f=>fs.rmSync(f,{force:true}));
+  return output;
+}
+
+async function makeSmartBgmBed(bgmFile, targetDur){
+  const bgmDur = await getAudioDurationSeconds(bgmFile).catch(()=>0);
+  const totalDur = Math.max(0.1, Number(targetDur || 0));
+  if(!bgmDur || bgmDur <= 0){
+    return { file: bgmFile, tempFiles: [], bgmDur, looped: false, trimmed: false };
+  }
+  // BGM dài hơn voice: không loop, chỉ để mixBgm trim đúng target và fade BGM cuối.
+  if(bgmDur >= totalDur){
+    return { file: bgmFile, tempFiles: [], bgmDur, looped: false, trimmed: bgmDur > totalDur };
+  }
+
+  const stamp = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const tempFiles = [];
+  const pieces = [];
+  let index = 0;
+  const crossfade = Math.min(2, Math.max(0.75, bgmDur * 0.08));
+  const loopStart = Math.min(8, Math.max(3, bgmDur * 0.18));
+  const tailLen = Math.max(1.2, bgmDur - loopStart);
+
+  async function cutPiece(ss, dur){
+    const out = path.join(appData(), `smart-bgm-${stamp}-${index++}.wav`);
+    tempFiles.push(out);
+    await runFfmpeg([
+      '-y','-ss',String(Math.max(0,ss).toFixed(3)),'-i',bgmFile,
+      '-t',String(Math.max(0.25,dur).toFixed(3)),
+      '-vn','-ac','2','-ar','24000','-c:a','pcm_s16le',out
+    ]);
+    pieces.push(out);
+    return out;
+  }
+
+  // First pass keeps the full original once, including its intro.
+  await cutPiece(0, bgmDur);
+  // Effective duration after crossfades. Repeated passes skip intro and overlap smoothly.
+  let effective = bgmDur;
+  while(effective < totalDur + 0.2){
+    const remainingAfterOverlap = totalDur - effective;
+    const needLen = Math.min(tailLen, Math.max(crossfade + 0.75, remainingAfterOverlap + crossfade));
+    await cutPiece(loopStart, needLen);
+    effective += needLen - crossfade;
+  }
+
+  const bed = path.join(appData(), `smart-bgm-bed-${stamp}.wav`);
+  await crossfadeConcatAudio(pieces, bed, crossfade);
+  tempFiles.push(bed);
+  return { file: bed, tempFiles, bgmDur, looped: true, trimmed: true };
+}
+
+async function mixBgm(voiceFile,bgmFile,output,bgmVolume=0.18,voiceVolume=1,fadeOut=0,fadeIn=0){
+  // Voice is the master content. BGM is shaped around it.
+  // fadeIn here means BGM intro duration before voice starts, not volume fade-in for the whole output.
   voiceVolume = Math.max(0.05, Math.min(2, Number(voiceVolume || 1)));
   bgmVolume = Math.max(0, Math.min(1, Number(bgmVolume || 0)));
+  fadeOut = Math.max(0, Math.min(10, Number(fadeOut || 0)));
+  fadeIn = Math.max(0, Math.min(10, Number(fadeIn || 0)));
+
   if(!bgmFile){
     if(Math.abs(voiceVolume-1) < 0.001){ fs.copyFileSync(voiceFile,output); return output; }
     await runFfmpeg(['-y','-i',voiceFile,'-filter:a',`volume=${voiceVolume}`,'-c:a','pcm_s16le',output]);
     return output;
   }
-  await runFfmpeg(['-y','-i',voiceFile,'-stream_loop','-1','-i',bgmFile,
-    '-filter_complex',`[0:a]volume=${voiceVolume}[voice];[1:a]volume=${bgmVolume}[bgm];[voice][bgm]amix=inputs=2:duration=first:dropout_transition=2`,
-    '-c:a','pcm_s16le',output]);
-  return output;
+
+  const voiceDur = await getAudioDurationSeconds(voiceFile).catch(()=>0);
+  const totalDur = Math.max(0.1, (voiceDur || 0) + fadeIn);
+  const bedInfo = await makeSmartBgmBed(bgmFile, totalDur);
+  const shapedBgmFile = bedInfo.file;
+  // If the BGM must be trimmed or looped, auto-fade BGM for 2s to avoid an abrupt cutoff.
+  const autoFade = (bedInfo.trimmed || bedInfo.looped) ? 2 : 0;
+  const fadeOutDur = Math.min(Math.max(fadeOut, autoFade), Math.max(0, totalDur - 0.1));
+
+  try{
+    const voiceDelayMs = Math.round(fadeIn * 1000);
+    const voiceChain = voiceDelayMs > 0
+      ? `[0:a]volume=${voiceVolume},adelay=${voiceDelayMs}:all=1[voice]`
+      : `[0:a]volume=${voiceVolume}[voice]`;
+    const bgmFilters = [`volume=${bgmVolume}`, `atrim=0:${totalDur.toFixed(3)}`, `asetpts=N/SR/TB`];
+    if(fadeOutDur > 0){
+      const st = Math.max(0, totalDur - fadeOutDur);
+      bgmFilters.push(`afade=t=out:st=${st.toFixed(3)}:d=${fadeOutDur.toFixed(3)}`);
+    }
+    const filter = `${voiceChain};[1:a]${bgmFilters.join(',')}[bgm];[voice][bgm]amix=inputs=2:duration=longest:dropout_transition=2,atrim=0:${totalDur.toFixed(3)},asetpts=N/SR/TB[aout]`;
+    await runFfmpeg(['-y','-i',voiceFile,'-i',shapedBgmFile,
+      '-filter_complex',filter,
+      '-map','[aout]','-c:a','pcm_s16le',output]);
+    return output;
+  } finally {
+    for(const f of (bedInfo.tempFiles || [])){
+      if(f !== bgmFile) fs.rmSync(f,{force:true});
+    }
+  }
 }
 
 async function exportToMp3(inputFile, outputBaseName=''){
@@ -270,15 +465,328 @@ async function exportToMp3(inputFile, outputBaseName=''){
   return output;
 }
 
-function promptFor(mode,style,speed){
-  const map={
-    ads:'Đọc quảng cáo tiếng Việt tự nhiên, rõ chữ, có năng lượng, thuyết phục. Nhịp nhanh gọn nhưng vẫn nghỉ nhẹ sau dấu chấm.',
-    story:'Đọc truyện tiếng Việt chậm vừa, truyền cảm, tự nhiên. Ngắt nghỉ rõ sau dấu chấm, xuống dòng, đoạn hội thoại và chuyển cảnh. Giữ nhịp kể mềm, không đọc dính câu.',
-    review:'Đọc review phim tiếng Việt kiểu kể chuyện cuốn hút, tò mò, cinematic. Có nhịp nhấn ở tình tiết quan trọng và nghỉ vừa sau câu dài.'
-  };
-  return `${map[mode]||map.ads} Phong cách: ${style}. Tốc độ: ${speed}. Tôn trọng dấu câu, xuống dòng và khoảng nghỉ tự nhiên. Không đọc ký hiệu kỹ thuật, đọc như người Việt tự nhiên.`;
+
+
+function cleanManualToneText(input){
+  return String(input || '')
+    .replace(/[\*_~`]+/g,'')
+    .replace(/\|\|\|/g,'')
+    .replace(/\|\|/g,'')
+    .replace(/\[NHẤN MẠNH:\s*([^\]]+)\]/gi, '$1')
+    .replace(/\[NGHỈ (?:NGẮN|DÀI)\]/gi, '')
+    .replace(/[ \t]+/g,' ')
+    .replace(/ *\n */g,'\n')
+    .trim();
+}
+function stripToneMarkupForSrt(input){ return cleanManualToneText(input); }
+
+function stretchVietnameseText(input){
+  const text = String(input || '').trim();
+  if(!text) return text;
+  const m = text.match(/(.*?)([A-Za-zÀ-ỹ]+)([^A-Za-zÀ-ỹ]*)$/u);
+  if(!m) return text;
+  const before = m[1], word = m[2], tail = m[3] || '';
+  const stretched = word.replace(/([aăâeêioôơuưy])([^aăâeêioôơuưy]*)$/iu, (_all, v, rest)=>`${v}${v}${v}${rest}`);
+  return `${before}${stretched}${tail}`;
 }
 
+function makeEmphasisText(input){
+  // Không thêm ký hiệu kỹ thuật. Chỉ làm sạch text; hiệu ứng chính nằm ở styleInstruction + hậu kỳ chunk.
+  return cleanManualToneText(input);
+}
+
+function parseManualToneSegments(input){
+  const text = String(input || '').replace(/\r/g,'');
+  const segments = [];
+  let buf = '';
+  const pushText = (value, tone='normal') => {
+    const cleaned = cleanManualToneText(value);
+    if(!cleaned) return;
+    const last = segments[segments.length-1];
+    if(last && last.type === 'text' && last.tone === tone){
+      last.text = `${last.text} ${cleaned}`.replace(/[ \t]+/g,' ').trim();
+    } else {
+      segments.push({type:'text', tone, text:cleaned});
+    }
+  };
+  const flush = () => { if(buf){ pushText(buf, 'normal'); buf=''; } };
+  for(let i=0;i<text.length;i++){
+    if(text.startsWith('|||', i)){
+      flush(); segments.push({type:'pause', ms:600}); i += 2; continue;
+    }
+    if(text.startsWith('||', i)){
+      flush(); segments.push({type:'pause', ms:250}); i += 1; continue;
+    }
+    const ch = text[i];
+    if(ch === '*' || ch === '~'){
+      const close = text.indexOf(ch, i+1);
+      if(close > i+1){
+        const inner = text.slice(i+1, close);
+        const cleaned = cleanManualToneText(inner);
+        if(cleaned){
+          flush();
+          pushText(cleaned, ch === '*' ? 'emphasis' : 'stretch');
+        }
+        i = close;
+        continue;
+      }
+      // Dấu markup lẻ: bỏ để không bao giờ lọt vào TTS.
+      continue;
+    }
+    buf += ch;
+  }
+  flush();
+  return segments;
+}
+
+
+function makeManualToneDebugLines(ttsItems){
+  const lines = [];
+  let textNo = 0;
+  for(let i=0;i<(ttsItems||[]).length;i++){
+    const item = ttsItems[i];
+    if(!item) continue;
+    if(item.type === 'pause'){
+      lines.push(`[ITEM ${String(i+1).padStart(2,'0')}] PAUSE ${item.ms || 0}ms`);
+      continue;
+    }
+    textNo++;
+    const text = String(item.text || '').replace(/\s+/g,' ').trim();
+    lines.push(`[ITEM ${String(i+1).padStart(2,'0')} | CHUNK ${String(textNo).padStart(2,'0')}] TONE=${item.tone || 'normal'} LEN=${text.length}`);
+    lines.push(text);
+    lines.push('---');
+  }
+  return lines;
+}
+
+function writeManualToneDebugLog(ttsItems, payload, sourceText){
+  try{
+    const dir = outDir(payload.outputDir);
+    const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+    const file = path.join(dir, `${safeBaseName(payload.outputBaseName || 'EVS-Voice')}-chunk-debug-${stamp}.txt`);
+    const textItems = (ttsItems||[]).filter(x=>x && x.type === 'text');
+    const pauseItems = (ttsItems||[]).filter(x=>x && x.type === 'pause');
+    const content = [
+      'EASY VOICE VIET - CHUNK DEBUG LOG',
+      `Time: ${new Date().toLocaleString('vi-VN')}`,
+      `Mode: ${payload.mode || '-'}`,
+      `Style: ${payload.style || '-'}`,
+      `Speed: ${payload.speed || '-'}`,
+      `Voice: ${payload.voiceName || '-'}`,
+      `Model: ${payload.model || '-'}`,
+      `Text chunks: ${textItems.length}`,
+      `Pauses: ${pauseItems.length}`,
+      '',
+      '===== ITEMS SENT TO TTS / PAUSE PLAN =====',
+      ...makeManualToneDebugLines(ttsItems),
+      '',
+      '===== SOURCE TEXT AFTER vnClean =====',
+      String(sourceText || '')
+    ].join('\n');
+    fs.writeFileSync(file, content, 'utf8');
+    return file;
+  }catch(err){
+    console.warn('[voice-viet] write chunk debug log failed:', err && err.message ? err.message : err);
+    return '';
+  }
+}
+
+function compileManualToneItems(input, mode, preview=false){
+  // V45 hybrid parser:
+  // - Giữ số request thấp bằng cách gom đoạn dài như V44.
+  // - Không gửi *, ~, || sang Gemini.
+  // - Nếu chunk có *...* thì hậu kỳ cả chunk sáng/nổi hơn + systemInstruction có năng lượng.
+  // - ~...~ vẫn biến đổi text để nghe rõ kéo dài hơn.
+  const text = String(input || '').replace(/\r/g,'');
+  const maxChunk = preview ? 650 : (mode === 'ads' ? 850 : 950);
+  const items = [];
+  let buf = '';
+  let bufTone = 'normal';
+  let emphasisCount = 0;
+  let stretchCount = 0;
+  let pauseCount = 0;
+
+  const markTone = (tone) => {
+    if(tone === 'emphasis') bufTone = 'emphasisMixed';
+    else if(tone === 'stretch' && bufTone === 'normal') bufTone = 'stretchMixed';
+  };
+
+  const pushText = () => {
+    const cleaned = cleanManualToneText(buf);
+    const tone = bufTone;
+    buf = '';
+    bufTone = 'normal';
+    if(!cleaned) return;
+    const paced = applyPacing(cleaned, mode);
+    const pieces = splitText(paced, maxChunk);
+    for(const piece of pieces){
+      const t = String(piece || '').trim();
+      if(t) items.push({type:'text', tone, text:t, displayText:t});
+    }
+  };
+
+  for(let i=0; i<text.length; i++){
+    if(text.startsWith('|||', i)){
+      pushText();
+      items.push({type:'pause', ms:600});
+      pauseCount++;
+      i += 2;
+      continue;
+    }
+    if(text.startsWith('||', i)){
+      pushText();
+      items.push({type:'pause', ms:250});
+      pauseCount++;
+      i += 1;
+      continue;
+    }
+    const ch = text[i];
+    if(ch === '*'){
+      const close = text.indexOf('*', i+1);
+      if(close > i+1){
+        const inner = makeEmphasisText(text.slice(i+1, close));
+        if(inner){
+          if(buf && !/\s$/.test(buf)) buf += ' ';
+          buf += inner;
+          markTone('emphasis');
+          emphasisCount++;
+        }
+        i = close;
+        continue;
+      }
+      // Dấu * lẻ: bỏ qua để không lọt vào TTS.
+      continue;
+    }
+    if(ch === '~'){
+      const close = text.indexOf('~', i+1);
+      if(close > i+1){
+        const inner = cleanManualToneText(text.slice(i+1, close));
+        if(inner){
+          if(buf && !/\s$/.test(buf)) buf += ' ';
+          buf += stretchVietnameseText(inner);
+          markTone('stretch');
+          stretchCount++;
+        }
+        i = close;
+        continue;
+      }
+      continue;
+    }
+    buf += ch;
+  }
+  pushText();
+
+  // Gộp text item liền nhau cùng tone nếu tổng vẫn ngắn. Không gộp qua pause.
+  const merged = [];
+  for(const item of items){
+    if(item.type !== 'text'){
+      merged.push(item);
+      continue;
+    }
+    const last = merged[merged.length-1];
+    if(last && last.type === 'text' && last.tone === item.tone && (last.text + '\n' + item.text).length <= maxChunk){
+      last.text = `${last.text}\n${item.text}`.trim();
+      last.displayText = `${last.displayText || last.text}\n${item.displayText || item.text}`.trim();
+    } else {
+      merged.push({...item});
+    }
+  }
+
+  // Chống micro-chunk: các đoạn quá ngắn như "Đặc biệt!" đứng riêng giữa 2 pause
+  // rất dễ làm Gemini tự bịa/hoàn thiện ngữ cảnh.
+  // Cách an toàn: gộp micro-chunk vào chunk kế tiếp, giữ pause trước nó.
+  const stable = [];
+  const minStandaloneChars = mode === 'ads' ? 24 : 18;
+  for(let i=0; i<merged.length; i++){
+    const item = merged[i];
+    if(item.type === 'text' && item.text.trim().length < minStandaloneChars){
+      const nextPause = merged[i+1];
+      const nextText = merged[i+2];
+      if(nextPause && nextPause.type === 'pause' && nextText && nextText.type === 'text' && (item.text + '\n' + nextText.text).length <= maxChunk){
+        stable.push({
+          ...nextText,
+          tone: item.tone !== 'normal' ? item.tone : nextText.tone,
+          text: `${item.text}\n${nextText.text}`.trim(),
+          displayText: `${item.displayText || item.text}\n${nextText.displayText || nextText.text}`.trim(),
+          microMerged: true
+        });
+        i += 2;
+        continue;
+      }
+      const prev = stable[stable.length-1];
+      if(prev && prev.type === 'text' && (prev.text + '\n' + item.text).length <= maxChunk){
+        prev.text = `${prev.text}\n${item.text}`.trim();
+        prev.displayText = `${prev.displayText || prev.text}\n${item.displayText || item.text}`.trim();
+        prev.microMerged = true;
+        if(prev.tone === 'normal' && item.tone !== 'normal') prev.tone = item.tone;
+        continue;
+      }
+    }
+    stable.push(item);
+  }
+
+  return {items: stable, stats:{emphasisCount, stretchCount, pauseCount, maxChunk, microMergedCount: stable.filter(x=>x.microMerged).length}};
+}
+
+function promptFor(mode,style,speed,tone='normal'){
+  const speedGuide = speed === 'Nhanh' ? 'nhịp nhanh gọn' : speed === 'Chậm' ? 'nhịp chậm vừa, rõ từng cụm' : 'nhịp vừa phải';
+  const styleGuide = {
+    'Năng lượng':'nhiều năng lượng, tươi, rõ chữ, thuyết phục, đúng chất giọng quảng cáo bán hàng',
+    'Cảm xúc':'ấm, truyền cảm, có nhịp lên xuống tự nhiên',
+    'Tự nhiên':'tự nhiên, rõ chữ, gần gũi'
+  };
+  const map={
+    ads:`Đọc tiếng Việt bằng giọng quảng cáo ${styleGuide[style] || styleGuide['Năng lượng']}, ${speedGuide}. Nhấn nhá tự nhiên ở thông tin ưu đãi, giá tiền, số lượng và tên cửa hàng. Giọng phải có sức sống, không đều đều.`,
+    story:`Đọc truyện tiếng Việt ${styleGuide[style] || styleGuide['Cảm xúc']}, ${speedGuide}. Ngắt nghỉ rõ, kể mềm và tự nhiên.`,
+    review:`Đọc review phim tiếng Việt cuốn hút, tò mò, cinematic, ${speedGuide}.`
+  };
+  if(String(tone).includes('emphasis')){
+    return `${map[mode] || map.ads} Đoạn này có thông tin quan trọng, đọc nổi hơn và có lực hơn, nhưng không thêm từ mới.`;
+  }
+  if(String(tone).includes('stretch')){
+    return `${map[mode] || map.ads} Đoạn này có câu chào thân thiện, đọc mềm hơn và hơi ngân nhẹ tự nhiên, nhưng không thêm từ mới.`;
+  }
+  return `${map[mode] || map.ads} Chỉ tạo audio cho nội dung được cung cấp, không thêm lời dẫn.`;
+}
+
+
+
+async function synthesizeVoiceVietChunk({payload, chunk, tone, orderedGeminiKeys, geminiKeys, progress, indexLabel}){
+  const requestedEngine = payload.engine || 'auto';
+  const canUseVertex = hasVertexConfig(payload);
+  const tryToneOrder = tone && tone !== 'normal' ? [tone, 'normal'] : ['normal'];
+  let lastErr = null;
+  for(const currentTone of tryToneOrder){
+    const baseParams={...payload,text:chunk,prompt:promptFor(payload.mode,payload.style,payload.speed,currentTone)};
+    if(requestedEngine==='vertex' || (requestedEngine==='auto' && canUseVertex)){
+      try{
+        progress(`${indexLabel} • VERTEX AI${currentTone!==tone?' • fallback thường':''}`);
+        return await callVertexTTS(baseParams);
+      }catch(err){
+        lastErr=err;
+        if(requestedEngine==='vertex' && currentTone === tryToneOrder[tryToneOrder.length-1]) throw err;
+        if(requestedEngine==='vertex') continue;
+        progress('Vertex chưa khả dụng, chuyển sang Gemini...');
+      }
+    }
+    const candidates = orderedGeminiKeys.length ? orderedGeminiKeys : [payload.apiKey].filter(Boolean);
+    for(let attempt=0; attempt<candidates.length; attempt++){
+      const key = candidates[attempt];
+      const keyLabel = keyLabelFromList(geminiKeys, key);
+      try{
+        progress(`${indexLabel} • ${keyLabel}${attempt?` • thử lại ${attempt+1}`:''}${currentTone!==tone?' • fallback thường':''}`);
+        return await callGeminiTTS({...baseParams, apiKey:key});
+      }catch(err){
+        lastErr=err;
+        const msg = String(err && err.message ? err.message : err);
+        progress(`Key ${keyLabel} lỗi, đổi key khác...`);
+        if(!/quota|429|RESOURCE_EXHAUSTED|rate|timeout|fetch|audio|invalid|403|400|không trả về audio|text response/i.test(msg)) break;
+        await sleep(900 + attempt*350);
+      }
+    }
+  }
+  throw lastErr || new Error('Không tạo được audio sau khi thử các key khả dụng.');
+}
 
 function getVoiceVietWindow() {
   return BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0] || null;
@@ -295,29 +803,37 @@ forceHandle('voice-viet:generate', async (_evt, payload)=>{
   const cacheEnabled = payload.cacheEnabled !== false;
   const rawText = preview ? String(payload.text||'').slice(0,650) : String(payload.text||'');
   progress('Làm sạch script...');
-  const cleanText = applyPacing(vnClean(rawText), payload.mode);
-  const normalizedText = normalizeForCache(cleanText);
-  const chunks = splitText(normalizedText, preview?650:900);
-  progress(`Tách chunk: 0/${chunks.length}`);
-  if(!chunks.length) throw new Error('Chưa có nội dung để gen voice');
 
+  const sourceText = vnClean(rawText);
+  const displayTextForSrt = normalizeForCache(applyPacing(stripToneMarkupForSrt(sourceText), payload.mode));
+  const displayChunks = splitText(displayTextForSrt, preview ? 650 : (payload.mode === 'ads' ? 850 : 950));
+
+  const compiled = compileManualToneItems(sourceText, payload.mode, preview);
+  const ttsItems = compiled.items;
+  const textItems = ttsItems.filter(x=>x.type==='text');
+  progress(`Parser manual: ${textItems.length} đoạn đọc, ${compiled.stats.pauseCount} pause, ${compiled.stats.emphasisCount} nhấn, ${compiled.stats.stretchCount} kéo dài`);
+  const chunkDebugFile = writeManualToneDebugLog(ttsItems, payload, sourceText);
+  if(chunkDebugFile) progress(`Đã ghi log chia chunk: ${path.basename(chunkDebugFile)}`);
+  console.log('[voice-viet][chunk-debug] items:', JSON.stringify(ttsItems.map((x,idx)=>x.type==='pause' ? {idx:idx+1,type:'pause',ms:x.ms} : {idx:idx+1,type:'text',tone:x.tone,len:String(x.text||'').length,text:String(x.text||'').slice(0,220)}), null, 2));
+  progress(`Tách đoạn đọc: 0/${textItems.length}`);
+  if(!textItems.length) throw new Error('Chưa có nội dung để gen voice');
+
+  const normalizedForCache = normalizeForCache(JSON.stringify(ttsItems.map(x=>x.type==='pause' ? {type:'pause', ms:x.ms} : {type:'text', tone:x.tone, text:x.text})));
   const geminiKeysRaw = Array.isArray(payload.apiKeys) ? payload.apiKeys.join('\n') : (payload.apiKeys || payload.apiKey || '');
   const geminiKeys = parseApiKeys(geminiKeysRaw);
   const startKeyIndex = Math.max(0, geminiKeys.indexOf(payload.apiKey));
   const orderedGeminiKeys = geminiKeys.length ? [...geminiKeys.slice(startKeyIndex), ...geminiKeys.slice(0,startKeyIndex)] : (payload.apiKey ? [payload.apiKey] : []);
 
-  const pProfile = pauseProfile(payload.mode);
   const cacheIdentity = {
-    version:'phase21-voice-cache-v1',
+    version:'v47-v38-energy-safe-final-v1',
     preview,
-    text: normalizedText,
+    items: normalizedForCache,
     engine: payload.engine,
     voiceName: payload.voiceName,
     mode: payload.mode,
     style: payload.style,
     speed: payload.speed,
-    model: payload.model,
-    chunkMs: pProfile.chunkMs
+    model: payload.model
   };
   const finalKey = hash(cacheIdentity);
   const cachedFinal = path.join(finalCacheDir(), `${finalKey}.wav`);
@@ -330,66 +846,67 @@ forceHandle('voice-viet:generate', async (_evt, payload)=>{
     const voiceMaster = path.join(exportRoot, `${base}-voice.wav`);
     const finalFile = path.join(exportRoot, `${base}.wav`);
     fs.copyFileSync(cachedFinal, voiceMaster);
-    progress(`Dùng lại voice cache hoàn chỉnh: ${chunks.length}/${chunks.length}`);
+    progress(`Dùng lại voice cache hoàn chỉnh: ${textItems.length}/${textItems.length}`);
     if(payload.bgmPath) progress('Đang mix BGM local từ voice cache...');
-    await mixBgm(voiceMaster, payload.bgmPath || '', finalFile, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1);
+    await mixBgm(voiceMaster, payload.bgmPath || '', finalFile, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1, payload.bgmFadeOut ?? payload.fadeOut ?? 0, payload.bgmFadeIn ?? payload.fadeIn ?? 0);
     manifest.finals = manifest.finals || {};
-    const srtContent = buildSrt(chunks, payload.mode);
+    const srtContent = buildSrt(displayChunks, payload.mode);
     manifest.finals[finalKey] = {...(manifest.finals[finalKey]||{}), lastUsedAt:new Date().toISOString(), hits:((manifest.finals[finalKey]?.hits||0)+1), file:cachedFinal};
     writeCacheManifest(manifest);
-    return { ok:true, filePath:finalFile, voiceFile:voiceMaster, fileUrl:pathToFileURL(finalFile).href, srtContent, cacheHits:chunks.length, chunks:chunks.length, finalCacheHit:true };
+    return { ok:true, filePath:finalFile, voiceFile:voiceMaster, fileUrl:pathToFileURL(finalFile).href, srtContent, cacheHits:textItems.length, chunks:textItems.length, finalCacheHit:true };
   }
 
-  const files=[]; let cacheHits=0; let generatedChunks=0;
-  for(let i=0;i<chunks.length;i++){
-    const chunk=chunks[i];
-    const chunkKey=hash({version:'phase15-chunk-v1', chunk, engine:payload.engine, voiceName:payload.voiceName, mode:payload.mode, style:payload.style, speed:payload.speed, model:payload.model});
+  const files=[]; let cacheHits=0; let generatedChunks=0; let textIndex=0;
+  for(let i=0;i<ttsItems.length;i++){
+    const item = ttsItems[i];
+    if(item.type === 'pause'){
+      const ms = Math.max(80, Number(item.ms || 250));
+      const pauseFile = path.join(cacheDir(), `manual-silence-${ms}ms.wav`);
+      if(!fs.existsSync(pauseFile)) writeSilentWav(pauseFile, ms);
+      files.push(pauseFile);
+      continue;
+    }
+    textIndex++;
+    const chunk = item.text;
+    const chunkPreview = String(chunk || '').replace(/\s+/g,' ').trim().slice(0,120);
+    progress(`Chunk ${textIndex}/${textItems.length} [${item.tone || 'normal'}] ${chunkPreview}`);
+    console.log(`[voice-viet][chunk ${textIndex}/${textItems.length}][${item.tone || 'normal'}]`, chunk);
+    const chunkKey=hash({version:'v47-v38-energy-safe-chunk-v1', chunk, tone:item.tone, engine:payload.engine, voiceName:payload.voiceName, mode:payload.mode, style:payload.style, speed:payload.speed, model:payload.model});
     const file=path.join(cacheDir(),`${chunkKey}.wav`);
     if(cacheEnabled && await isAudioFileValid(file)){
       cacheHits++;
-      progress(`Dùng lại cache chunk ${i+1}/${chunks.length}`);
+      progress(`Dùng lại cache đoạn ${textIndex}/${textItems.length}`);
       manifest.chunks = manifest.chunks || {};
       manifest.chunks[chunkKey] = {...(manifest.chunks[chunkKey]||{}), lastUsedAt:new Date().toISOString(), hits:((manifest.chunks[chunkKey]?.hits||0)+1), file, chars:chunk.length};
       files.push(file);
       continue;
     }
     if(fs.existsSync(file)) fs.rmSync(file,{force:true});
-    progress(`Đang tạo giọng đọc ${i+1}/${chunks.length}...`);
-    const baseParams={...payload,text:chunk,prompt:promptFor(payload.mode,payload.style,payload.speed)};
-    let audio=null;
-    let lastErr=null;
-    if(payload.engine==='vertex'){
-      try{
-        progress(`Đang tạo giọng đọc ${i+1}/${chunks.length} • VERTEX AI`);
-        audio = await callVertexTTS(baseParams);
-      }catch(err){ lastErr=err; }
-    }
-    if(!audio){
-      const candidates = orderedGeminiKeys.length ? orderedGeminiKeys : [payload.apiKey].filter(Boolean);
-      for(let attempt=0; attempt<candidates.length; attempt++){
-        const key = candidates[attempt];
-        const keyLabel = keyLabelFromList(geminiKeys, key);
-        try{
-          progress(`Đang tạo giọng đọc ${i+1}/${chunks.length} • ${keyLabel}${attempt?` • thử lại ${attempt+1}`:''}`);
-          audio = await callGeminiTTS({...baseParams, apiKey:key});
-          break;
-        }catch(err){
-          lastErr=err;
-          const msg = String(err && err.message ? err.message : err);
-          progress(`Key ${keyLabel} lỗi, đổi key khác...`);
-          if(!/quota|429|RESOURCE_EXHAUSTED|rate|timeout|fetch|audio|invalid|403|400/i.test(msg)) break;
-          await sleep(1200 + attempt*500);
-        }
-      }
-    }
-    if(!audio) throw lastErr || new Error('Không tạo được audio sau khi thử các key khả dụng.');
+    progress(`Đang tạo giọng đọc ${textIndex}/${textItems.length}${item.tone==='emphasis'?' • nhấn mạnh':item.tone==='stretch'?' • kéo dài':''}...`);
+    let audio = await synthesizeVoiceVietChunk({
+      payload,
+      chunk,
+      tone:item.tone || 'normal',
+      orderedGeminiKeys,
+      geminiKeys,
+      progress,
+      indexLabel:`Đang tạo giọng đọc ${textIndex}/${textItems.length}`
+    });
     const rawFile = path.join(cacheDir(),`${chunkKey}.raw`);
     fs.writeFileSync(rawFile,audio.buffer || audio);
-    await ensurePlayableWav(rawFile,file,audio.mimeType || '');
+    try{
+      const cleanWav = path.join(cacheDir(),`${chunkKey}.clean.wav`);
+      await ensurePlayableWav(rawFile, cleanWav, audio.mimeType || '');
+      await postProcessManualToneAudio(cleanWav, file, item.tone);
+      fs.rmSync(cleanWav,{force:true});
+    }catch(err){
+      fs.rmSync(rawFile,{force:true});
+      throw new Error(`${err.message || err} Đoạn lỗi: "${String(chunk).slice(0,90)}"`);
+    }
     fs.rmSync(rawFile,{force:true});
     if(!(await isAudioFileValid(file))) throw new Error('File voice vừa tạo chưa hợp lệ nên app đã dừng trước khi export. Hãy thử đổi voice/model hoặc rút ngắn script.');
     manifest.chunks = manifest.chunks || {};
-    manifest.chunks[chunkKey] = {file, chars:chunk.length, createdAt:new Date().toISOString(), lastUsedAt:new Date().toISOString(), hits:0, engine:payload.engine, voiceName:payload.voiceName, mode:payload.mode, style:payload.style, speed:payload.speed, model:payload.model};
+    manifest.chunks[chunkKey] = {file, chars:chunk.length, tone:item.tone, createdAt:new Date().toISOString(), lastUsedAt:new Date().toISOString(), hits:0, engine:payload.engine, voiceName:payload.voiceName, mode:payload.mode, style:payload.style, speed:payload.speed, model:payload.model};
     generatedChunks++;
     files.push(file);
     await sleep(300);
@@ -397,33 +914,28 @@ forceHandle('voice-viet:generate', async (_evt, payload)=>{
   writeCacheManifest(manifest);
 
   progress('Đang ghép giọng đọc...');
-  const concatFiles = [];
-  if(files.length > 1){
-    const silence = path.join(cacheDir(), `silence-${pProfile.chunkMs}ms.wav`);
-    if(!fs.existsSync(silence)) writeSilentWav(silence, pProfile.chunkMs);
-    files.forEach((f, idx)=>{ concatFiles.push(f); if(idx < files.length-1) concatFiles.push(silence); });
-  } else {
-    concatFiles.push(...files);
-  }
   const wantedBase = safeBaseName(payload.outputBaseName || payload.mode);
   const base= `${wantedBase}-${preview?'preview':'full'}-${Date.now()}`;
   const exportRoot = outDir(payload.outputDir);
+  const mergedRaw=path.join(exportRoot,`${base}-voice-raw.wav`);
   const merged=path.join(exportRoot,`${base}-voice.wav`);
-  await concatAudio(concatFiles,merged);
+  await concatAudio(files,mergedRaw);
+  progress('Đang tăng năng lượng voice...');
+  await postProcessFinalVoiceAudio(mergedRaw, merged, payload);
+  fs.rmSync(mergedRaw,{force:true});
   progress('Đang xử lý nhạc nền...');
   const finalFile=path.join(exportRoot,`${base}.wav`);
-  await mixBgm(merged,payload.bgmPath,finalFile,payload.bgmVolume ?? 0.18,payload.voiceVolume ?? 1);
-  const srtContent = buildSrt(chunks, payload.mode);
+  await mixBgm(merged,payload.bgmPath,finalFile,payload.bgmVolume ?? 0.18,payload.voiceVolume ?? 1, payload.bgmFadeOut ?? payload.fadeOut ?? 0, payload.bgmFadeIn ?? payload.fadeIn ?? 0);
+  const srtContent = buildSrt(displayChunks, payload.mode);
 
   if(cacheEnabled && await isAudioFileValid(merged)){
     fs.copyFileSync(merged, cachedFinal);
     const manifest2 = readCacheManifest();
     manifest2.finals = manifest2.finals || {};
-    manifest2.finals[finalKey] = {file:cachedFinal, type:'voice-master', createdAt:new Date().toISOString(), lastUsedAt:new Date().toISOString(), hits:0, chunks:chunks.length, cacheHits, generatedChunks, engine:payload.engine, voiceName:payload.voiceName, mode:payload.mode, style:payload.style, speed:payload.speed, model:payload.model, chars:normalizedText.length};
+    manifest2.finals[finalKey] = {file:cachedFinal, chunks:textItems.length, createdAt:new Date().toISOString(), lastUsedAt:new Date().toISOString(), hits:0, bytes:fileSize(cachedFinal), cacheHits, generatedChunks};
     writeCacheManifest(manifest2);
   }
-  progress('Hoàn tất');
-  return { ok:true, filePath:finalFile, voiceFile:merged, fileUrl:pathToFileURL(finalFile).href, srtContent, cacheHits, generatedChunks, chunks:chunks.length, finalCacheHit:false };
+  return { ok:true, filePath:finalFile, voiceFile:merged, fileUrl:pathToFileURL(finalFile).href, srtContent, cacheHits, chunks:textItems.length, finalCacheHit:false };
 });
 
 forceHandle('voice-viet:audio:exportMp3', async(_e,filePath,outputBaseName)=>{ const output=await exportToMp3(filePath, outputBaseName); return {ok:true,filePath:output,fileUrl:pathToFileURL(output).href}; });
@@ -447,7 +959,7 @@ forceHandle('voice-viet:audio:mixBgmPreview', async(_e, payload={})=>{
   }
   if(sources.length > 1) await concatAudio(sources, sourceFile);
   else fs.copyFileSync(sources[0], sourceFile);
-  await mixBgm(sourceFile, payload.bgmFile || '', output, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1);
+  await mixBgm(sourceFile, payload.bgmFile || '', output, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1, payload.bgmFadeOut ?? payload.fadeOut ?? 0, payload.bgmFadeIn ?? payload.fadeIn ?? 0);
   fs.rmSync(sourceFile,{force:true});
   return {ok:true,filePath:output,fileUrl:pathToFileURL(output).href};
 });
@@ -478,7 +990,7 @@ forceHandle('voice-viet:audio:exportMp3WithMix', async(_e, payload={})=>{
   }
   if(sources.length > 1) await concatAudio(sources, sourceFile);
   else fs.copyFileSync(sources[0], sourceFile);
-  await mixBgm(sourceFile, payload.bgmFile || '', mixedFile, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1);
+  await mixBgm(sourceFile, payload.bgmFile || '', mixedFile, payload.bgmVolume ?? 0.18, payload.voiceVolume ?? 1, payload.bgmFadeOut ?? payload.fadeOut ?? 0, payload.bgmFadeIn ?? payload.fadeIn ?? 0);
   const output = await exportToMp3(mixedFile, payload.outputBaseName || base);
   fs.rmSync(sourceFile,{force:true});
   fs.rmSync(mixedFile,{force:true});
@@ -523,7 +1035,7 @@ forceHandle('voice-viet:file:read-audio-file', async(_e, payload)=>{
 
 
 forceHandle('voice-viet:bgm:importAsset', async()=>{
-  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Thêm BGM vào thư viện app',properties:['openFile'],filters:[{name:'Audio',extensions:['mp3','wav','m4a','aac','flac']} ]});
+  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Easy Studio',properties:['openFile'],filters:[{name:'Audio',extensions:['mp3','wav','m4a','aac','flac']} ]});
   if(r.canceled || !r.filePaths?.[0]) return null;
   const src=r.filePaths[0];
   const ext=path.extname(src) || '.mp3';
@@ -543,12 +1055,12 @@ forceHandle('voice-viet:bgm:openLibrary', async()=>{
 });
 
 forceHandle('voice-viet:bgm:choose', async()=>{
-  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Chọn file BGM',properties:['openFile'],filters:[{name:'Audio',extensions:['mp3','wav','m4a','aac','flac']} ]});
+  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Easy Studio',properties:['openFile'],filters:[{name:'Audio',extensions:['mp3','wav','m4a','aac','flac']} ]});
   if(r.canceled) return null; return r.filePaths[0];
 });
 
 forceHandle('voice-viet:output:chooseDir', async()=>{
-  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Chọn thư mục lưu file xuất',properties:['openDirectory','createDirectory']});
+  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Easy Studio',properties:['openDirectory','createDirectory']});
   if(r.canceled) return null;
   return r.filePaths[0];
 });
@@ -557,13 +1069,13 @@ forceHandle('voice-viet:cache:info', async()=> await getCacheStats());
 forceHandle('voice-viet:cache:clear', async()=>{ fs.rmSync(path.join(appData(),'cache'),{recursive:true,force:true}); ensureDir(cacheDir()); ensureDir(finalCacheDir()); return {ok:true}; });
 
 forceHandle('voice-viet:keys:importTxt', async()=>{
-  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Nhập file keys.txt',properties:['openFile'],filters:[{name:'Text',extensions:['txt','csv','log']},{name:'All files',extensions:['*']} ]});
+  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Easy Studio',properties:['openFile'],filters:[{name:'Text',extensions:['txt','csv','log']},{name:'All files',extensions:['*']} ]});
   if(r.canceled || !r.filePaths?.[0]) return null;
   return fs.readFileSync(r.filePaths[0],'utf8');
 });
 
 forceHandle('voice-viet:keys:exportTxt', async(_e, content)=>{
-  const r=await dialog.showSaveDialog(getVoiceVietWindow(),{title:'Xuất danh sách key',defaultPath:'keys.txt',filters:[{name:'Text',extensions:['txt']} ]});
+  const r=await dialog.showSaveDialog(getVoiceVietWindow(),{title:'Easy Studio',defaultPath:'keys.txt',filters:[{name:'Text',extensions:['txt']} ]});
   if(r.canceled || !r.filePath) return null;
   fs.writeFileSync(r.filePath, String(content||''), 'utf8');
   return r.filePath;
@@ -573,14 +1085,14 @@ forceHandle('voice-viet:keys:exportLogTxt', async(_e, content)=>{
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
   const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}-${pad(now.getHours())}-${pad(now.getMinutes())}`;
-  const r=await dialog.showSaveDialog(getVoiceVietWindow(),{title:'Tải log key',defaultPath:`evs-key-log-${stamp}.txt`,filters:[{name:'Text',extensions:['txt']} ]});
+  const r=await dialog.showSaveDialog(getVoiceVietWindow(),{title:'Easy Studio',defaultPath:`evs-key-log-${stamp}.txt`,filters:[{name:'Text',extensions:['txt']} ]});
   if(r.canceled || !r.filePath) return null;
   fs.writeFileSync(r.filePath, String(content||''), 'utf8');
   return r.filePath;
 });
 
 forceHandle('voice-viet:vertex:importJson', async()=>{
-  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Import Vertex service-account JSON',properties:['openFile'],filters:[{name:'Service Account JSON',extensions:['json']},{name:'All files',extensions:['*']} ]});
+  const r=await dialog.showOpenDialog(getVoiceVietWindow(),{title:'Easy Studio',properties:['openFile'],filters:[{name:'Service Account JSON',extensions:['json']},{name:'All files',extensions:['*']} ]});
   if(r.canceled || !r.filePaths?.[0]) return null;
   const src=r.filePaths[0];
   let parsed={};
@@ -590,7 +1102,9 @@ forceHandle('voice-viet:vertex:importJson', async()=>{
   const safeName=String(parsed.client_email || parsed.project_id || path.basename(src,'.json')).replace(/[^a-z0-9_.-]+/gi,'-');
   const dest=path.join(destDir,`${safeName}-${Date.now()}.json`);
   fs.copyFileSync(src,dest);
-  return {ok:true,path:dest,projectId:parsed.project_id||'',clientEmail:parsed.client_email||'',type:parsed.type||''};
+  let accessToken = '';
+  try { accessToken = await getVertexAccessTokenFromJson(dest); } catch {}
+  return {ok:true,path:dest,projectId:parsed.project_id||'',clientEmail:parsed.client_email||'',type:parsed.type||'',accessToken};
 });
 
 

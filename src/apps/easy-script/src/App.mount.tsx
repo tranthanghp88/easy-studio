@@ -1287,7 +1287,7 @@ SCRIPT:
         <section className="settings-card api-settings-card creator-api-card">
           <div className="api-copy">
             <h2>⚙ Cài đặt API</h2>
-            <p>Chế độ tự động sẽ chọn nhà cung cấp AI phù hợp nhất.</p>
+            
           </div>
           <label>
             Gemini API Key
@@ -1664,7 +1664,7 @@ SCRIPT:
             <div className="panel-head">
               <div>
                 <h2>🧩 Prompt Chain Editor</h2>
-                <p>Sửa prompt theo từng step. Dùng placeholders: {"{{SOURCE_TEXT}}"}, {"{{COMMON}}"}, {"{{TARGET_LENGTH}}"}.</p>
+                
               </div>
               <div className="panel-actions">
                 <button className="btn-subtle" onClick={() => setShowPromptEditor(false)}>✕ Đóng</button>

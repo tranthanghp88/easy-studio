@@ -24,19 +24,31 @@ export type VideoLayoutSettings = {
     speakingBoost: number;
     smoothingUp: number;
     smoothingDown: number;
+    activeSpan: number;
+    spreadBias: number;
+    reactiveSpread: number;
+    glowStrength: number;
+    peakMarker: boolean;
+    mirrorMode: boolean;
+    waveStyle: "calm" | "podcast" | "energetic";
     color: string;
+    colorA: string;
+    colorR: string;
+    colorBoth: string;
   };
 };
 
-const STORAGE_KEY = "video-layout-settings-v4";
+const STORAGE_KEY = "video-layout-settings-v5";
 export const DEFAULT_VIDEO_LAYOUT_SETTINGS: VideoLayoutSettings = {
   subtitle: {
     offsetX: 0, marginBottom: 110, fontSize: 40, outlineWidth: 1.2, shadowDepth: 3.0, maxLineChars: 32,
     colorA: "#37A5B4", colorR: "#BE6E55", colorBoth: "#C8AA5A", outlineColor: "#353535", backgroundColor: "rgba(0,0,0,0.18)"
   },
   wavebar: {
-    xOffset: 30, y: 430, width: 360, height: 48, barCount: 44, barWidth: 3, gap: 3, maxTipHeight: 42,
-    speakingBoost: 6.0, smoothingUp: 0.52, smoothingDown: 0.26, color: "#FFFFFF"
+    xOffset: 0, y: 430, width: 720, height: 110, barCount: 56, barWidth: 8, gap: 4, maxTipHeight: 78,
+    speakingBoost: 8.2, smoothingUp: 0.64, smoothingDown: 0.18, activeSpan: 5.8, spreadBias: 0.78, reactiveSpread: 1.0,
+    glowStrength: 0.75, peakMarker: true, mirrorMode: false, waveStyle: "podcast",
+    color: "#FFFFFF", colorA: "#22D3EE", colorR: "#FB7185", colorBoth: "#A78BFA"
   }
 };
 
@@ -72,7 +84,17 @@ function mergeSettings(raw: any): VideoLayoutSettings {
       speakingBoost: clampNumber(s?.wavebar?.speakingBoost, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.speakingBoost),
       smoothingUp: clampNumber(s?.wavebar?.smoothingUp, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.smoothingUp),
       smoothingDown: clampNumber(s?.wavebar?.smoothingDown, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.smoothingDown),
-      color: String(s?.wavebar?.color || DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.color)
+      activeSpan: clampNumber(s?.wavebar?.activeSpan, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.activeSpan),
+      spreadBias: clampNumber(s?.wavebar?.spreadBias, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.spreadBias),
+      reactiveSpread: clampNumber(s?.wavebar?.reactiveSpread, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.reactiveSpread),
+      glowStrength: clampNumber(s?.wavebar?.glowStrength, DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.glowStrength),
+      peakMarker: typeof s?.wavebar?.peakMarker === "boolean" ? s.wavebar.peakMarker : DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.peakMarker,
+      mirrorMode: typeof s?.wavebar?.mirrorMode === "boolean" ? s.wavebar.mirrorMode : DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.mirrorMode,
+      waveStyle: (["calm", "podcast", "energetic"].includes(String(s?.wavebar?.waveStyle)) ? String(s.wavebar.waveStyle) : DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.waveStyle) as "calm" | "podcast" | "energetic",
+      color: String(s?.wavebar?.color || DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.color),
+      colorA: String(s?.wavebar?.colorA || DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.colorA),
+      colorR: String(s?.wavebar?.colorR || DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.colorR),
+      colorBoth: String(s?.wavebar?.colorBoth || DEFAULT_VIDEO_LAYOUT_SETTINGS.wavebar.colorBoth)
     }
   };
 }

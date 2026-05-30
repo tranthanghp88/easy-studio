@@ -19,6 +19,8 @@ type BgmManagerDialogProps = {
   setInsertDuration: (value: string) => void;
   insertMode: "once" | "loop";
   setInsertMode: (value: "once" | "loop") => void;
+  insertFadeOut: string;
+  setInsertFadeOut: (value: string) => void;
   onPreview: (asset: BgmAsset) => void;
   previewAssetId?: string;
   previewAudioUrl?: string | null;
@@ -41,6 +43,8 @@ export default function BgmManagerDialog({
   setInsertDuration,
   insertMode,
   setInsertMode,
+  insertFadeOut,
+  setInsertFadeOut,
   onPreview,
   previewAssetId,
   previewAudioUrl
@@ -85,7 +89,7 @@ export default function BgmManagerDialog({
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-3">
+          <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-4">
             <label className="block space-y-1">
               <span className="text-xs font-medium text-slate-600">Volume BGM</span>
               <input
@@ -96,7 +100,7 @@ export default function BgmManagerDialog({
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-xs font-medium text-slate-600">Duration (để trống = full file)</span>
+              <span className="text-xs font-medium text-slate-600">Độ dài BGM (trống = khớp voice)</span>
               <input
                 value={insertDuration}
                 onChange={(e) => setInsertDuration(e.target.value)}
@@ -105,15 +109,24 @@ export default function BgmManagerDialog({
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-xs font-medium text-slate-600">Mode</span>
+              <span className="text-xs font-medium text-slate-600">BGM Length Mode</span>
               <select
                 value={insertMode}
                 onChange={(e) => setInsertMode((e.target.value === "loop" ? "loop" : "once") as "once" | "loop")}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="once">once</option>
-                <option value="loop">loop</option>
+                <option value="once">Match Voice Length</option>
+                <option value="loop">Loop To Voice Length</option>
               </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-medium text-slate-600">Fade Out cuối BGM (giây)</span>
+              <input
+                value={insertFadeOut}
+                onChange={(e) => setInsertFadeOut(e.target.value)}
+                placeholder="2"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
             </label>
           </div>
 

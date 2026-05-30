@@ -88,6 +88,7 @@ export type BgmMarker = {
   duration?: number;
   volume?: number;
   mode?: string;
+  fadeOut?: number;
 };
 
 export type TimelineBlock = {

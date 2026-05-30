@@ -1085,3 +1085,137 @@
   .voice-video-scope .voice-video-globalTitle { padding-left: 24px !important; padding-right: 90px !important; }
   .voice-video-scope .voice-video-globalTitle h1 { font-size: 28px !important; }
 }
+
+/* Wavebar Engine V2 controls */
+.voice-video-scope .vlm-wave-preset-row { display: flex !important; gap: .55rem !important; flex-wrap: wrap !important; margin: 0 0 .8rem !important; }
+.voice-video-scope .vlm-preset-btn { min-height: 36px !important; padding: .5rem .85rem !important; border-radius: 999px !important; border: 1px solid rgba(148,163,184,.42) !important; background: linear-gradient(180deg,#ffffff,#f8fafc) !important; color: #334155 !important; font-weight: 900 !important; box-shadow: 0 8px 20px rgba(15,23,42,.08) !important; }
+.voice-video-scope .vlm-preset-btn.active { border-color: rgba(14,165,233,.75) !important; color: #0369a1 !important; background: linear-gradient(135deg,#e0f2fe,#eef2ff) !important; box-shadow: 0 12px 28px rgba(14,165,233,.18) !important; }
+.voice-video-scope .vlm-check-row { min-height: 42px !important; display: flex !important; align-items: center !important; gap: .6rem !important; padding: .6rem .75rem !important; border: 1px solid rgba(226,232,240,.9) !important; border-radius: .9rem !important; background: #fff !important; color: #334155 !important; font-weight: 800 !important; }
+.voice-video-scope .vlm-check-row input { width: 18px !important; height: 18px !important; accent-color: #0ea5e9 !important; }
+.voice-video-scope .vlm-text-row select { width: 100% !important; min-height: 36px !important; border-radius: .75rem !important; border: 1px solid rgba(203,213,225,.9) !important; background: #fff !important; color: #0f172a !important; padding: .35rem .55rem !important; font-weight: 800 !important; }
+.voice-video-scope .vlm-bars span { box-shadow: 0 0 10px rgba(255,255,255,.46), 0 0 18px rgba(34,211,238,.26) !important; }
+
+.vlm-karaoke-word{display:inline-block;text-shadow:0 0 8px rgba(255,255,255,.9),0 0 16px rgba(255,255,255,.45);transform:scale(1.035);font-weight:950;}
+
+/* v37.2 Preset Manager compact list - simple text rows */
+.voice-video-scope .presetCompactPanel {
+  max-height: 360px !important;
+  overflow: hidden !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  border-radius: 14px !important;
+  padding: 10px 12px !important;
+}
+.voice-video-scope .presetCompactList {
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+.voice-video-scope .presetCompactRow {
+  display: grid !important;
+  grid-template-columns: minmax(120px,1fr) 74px 52px 42px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 34px !important;
+  padding: 4px 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(226,232,240,.9) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.voice-video-scope .presetCompactRow.active {
+  background: transparent !important;
+  border-color: rgba(147,197,253,.75) !important;
+}
+.voice-video-scope .presetCompactName,
+.voice-video-scope .presetDetailBtn,
+.voice-video-scope .presetEditBtn,
+.voice-video-scope .presetTickBtn {
+  min-height: 28px !important;
+  padding: 2px 6px !important;
+  border-radius: 8px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+.voice-video-scope .presetCompactName {
+  text-align: left !important;
+  color: #0f172a !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.voice-video-scope .presetDetailBtn { color: #16a34a !important; }
+.voice-video-scope .presetEditBtn { color: #2563eb !important; }
+.voice-video-scope .presetTickBtn { color: #64748b !important; font-size: 17px !important; }
+.voice-video-scope .presetTickBtn.checked { color: #16a34a !important; }
+.voice-video-scope .presetInlineDetail {
+  padding: 6px 6px 8px 14px !important;
+  border-bottom: 1px solid rgba(226,232,240,.9) !important;
+  color: #334155 !important;
+  font-size: 12.5px !important;
+  line-height: 1.45 !important;
+  font-weight: 800 !important;
+  background: transparent !important;
+}
+@media(max-width:760px){.voice-video-scope .presetCompactRow{grid-template-columns:1fr auto auto 38px!important}.voice-video-scope .presetInlineDetail{font-size:12px!important}}
+
+/* v37.3 Preset Manager: text-list, not card/block */
+.voice-video-scope .presetCompactPanel{border:0!important;background:transparent!important;border-radius:0!important;padding:0!important;box-shadow:none!important;max-height:300px!important;}
+.voice-video-scope .presetCompactList{max-height:220px!important;overflow-y:auto!important;gap:0!important;}
+.voice-video-scope .presetCompactRow{background:transparent!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.85)!important;border-radius:0!important;min-height:32px!important;padding:3px 0!important;}
+.voice-video-scope .presetInlineDetail{background:transparent!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.85)!important;padding:5px 0 8px 14px!important;line-height:1.5!important;}
+
+
+/* v37.4 English Preset Manager single-line table rows */
+.voice-video-scope .presetCompactPanel{border:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;}
+.voice-video-scope .presetCompactList{max-height:220px!important;overflow-y:auto!important;display:block!important;}
+.voice-video-scope .presetCompactRow{display:grid!important;grid-template-columns:minmax(150px,1fr) 70px 48px 34px!important;align-items:center!important;gap:6px!important;width:100%!important;min-height:30px!important;padding:2px 0!important;margin:0!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.9)!important;background:transparent!important;border-radius:0!important;}
+.voice-video-scope .presetCompactName{justify-self:stretch!important;text-align:left!important;padding-left:0!important;color:#0f172a!important;font-weight:950!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.voice-video-scope .presetDetailBtn,.voice-video-scope .presetEditBtn,.voice-video-scope .presetTickBtn{justify-self:center!important;width:100%!important;min-width:0!important;min-height:26px!important;padding:0 4px!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;}
+.voice-video-scope .presetDetailBtn{color:#16a34a!important;}
+.voice-video-scope .presetEditBtn{color:#2563eb!important;}
+.voice-video-scope .presetTickBtn{font-size:17px!important;color:#64748b!important;}
+.voice-video-scope .presetTickBtn.checked{color:#16a34a!important;}
+.voice-video-scope .presetInlineDetail{padding:5px 0 7px 10px!important;margin:0!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.9)!important;background:transparent!important;color:#334155!important;font-size:12.5px!important;font-weight:800!important;line-height:1.45!important;}
+.voice-video-scope .presetInlineDetail div{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.voice-video-scope .presetCompactPanel + .flex{align-items:center!important;}
+.voice-video-scope .presetCompactPanel + .flex .flex:first-child{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;}
+.voice-video-scope .presetCompactPanel + .flex .flex:first-child button{white-space:nowrap!important;min-width:112px!important;}
+@media(max-width:760px){.voice-video-scope .presetCompactRow{grid-template-columns:minmax(100px,1fr) 64px 44px 32px!important}.voice-video-scope .presetInlineDetail div{white-space:normal!important}}
+
+/* v37.5 Preset Manager final compact text rows */
+.voice-video-scope .presetCompactPanel{border:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;}
+.voice-video-scope .presetCompactList{max-height:220px!important;overflow-y:auto!important;display:block!important;}
+.voice-video-scope .presetCompactRow{display:grid!important;grid-template-columns:minmax(0,1fr) 72px 48px 30px!important;align-items:center!important;gap:6px!important;width:100%!important;min-height:28px!important;padding:2px 0!important;margin:0!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.9)!important;background:transparent!important;border-radius:0!important;}
+.voice-video-scope .presetCompactName{justify-self:stretch!important;text-align:left!important;padding-left:0!important;margin-left:0!important;color:#0f172a!important;font-weight:950!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.voice-video-scope .presetDetailBtn,.voice-video-scope .presetEditBtn{justify-self:center!important;width:100%!important;min-width:0!important;min-height:24px!important;padding:0 4px!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;font-size:13px!important;}
+.voice-video-scope .presetDetailBtn{color:#16a34a!important;font-weight:950!important;}
+.voice-video-scope .presetEditBtn{color:#2563eb!important;font-weight:950!important;}
+.voice-video-scope .presetCheckWrap{display:flex!important;align-items:center!important;justify-content:center!important;width:30px!important;height:24px!important;margin:0!important;}
+.voice-video-scope .presetCheckWrap input{width:15px!important;height:15px!important;accent-color:#2563eb!important;cursor:pointer!important;}
+.voice-video-scope .presetInlineDetail{padding:5px 0 7px 0!important;margin:0!important;border:0!important;border-bottom:1px solid rgba(226,232,240,.9)!important;background:transparent!important;color:#334155!important;font-size:12.5px!important;font-weight:800!important;line-height:1.45!important;}
+.voice-video-scope .presetInlineDetail div{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:left!important;}
+.voice-video-scope .presetCompactPanel + .flex{display:block!important;}
+.voice-video-scope .presetCompactPanel + .flex .flex:first-child{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;width:100%!important;}
+.voice-video-scope .presetCompactPanel + .flex .flex:first-child button{white-space:nowrap!important;min-width:0!important;flex:1 1 0!important;justify-content:center!important;}
+
+
+/* v37.6 final preset alignment override */
+.voice-video-scope .presetCompactRow{grid-template-columns:minmax(0,1fr) 72px 48px 30px!important;}
+.voice-video-scope .presetCompactName{display:flex!important;align-items:center!important;justify-content:flex-start!important;text-align:left!important;width:100%!important;justify-self:stretch!important;padding-left:0!important;margin-left:0!important;}
+.voice-video-scope .presetCompactName *{text-align:left!important;}
+.voice-video-scope .presetCheckWrap input{appearance:auto!important;width:15px!important;height:15px!important;accent-color:#2563eb!important;}
+
+
+/* v37.7 final hard override: preset title always sticks to left edge */
+.voice-video-scope .presetCompactRow{display:grid!important;grid-template-columns:minmax(0,1fr) 72px 48px 30px!important;align-items:center!important;gap:6px!important;width:100%!important;}
+.voice-video-scope .presetCompactName{display:block!important;text-align:left!important;justify-self:start!important;justify-content:flex-start!important;align-items:center!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;padding-left:0!important;text-indent:0!important;color:#0f172a!important;font-weight:950!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.voice-video-scope .presetCompactName *{text-align:left!important;margin-left:0!important;padding-left:0!important;justify-content:flex-start!important;}
+.voice-video-scope .presetCompactName button,.voice-video-scope button.presetCompactName{justify-content:flex-start!important;text-align:left!important;}
+.voice-video-scope .presetCheckWrap input{appearance:auto!important;width:16px!important;height:16px!important;accent-color:#2563eb!important;}

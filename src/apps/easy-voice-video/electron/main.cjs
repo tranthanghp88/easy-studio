@@ -610,6 +610,48 @@ function setRgbPixel(frame, width, height, x, y, rgb = [255, 255, 255]) {
   frame[idx + 2] = rgb[2];
 }
 
+
+function blendRgbPixel(frame, width, height, x, y, rgb, alpha = 1) {
+  if (x < 0 || x >= width || y < 0 || y >= height) return;
+  const idx = (y * width + x) * 3;
+  const a = Math.max(0, Math.min(1, Number(alpha) || 0));
+  frame[idx] = Math.max(0, Math.min(255, Math.round(frame[idx] * (1 - a) + rgb[0] * a)));
+  frame[idx + 1] = Math.max(0, Math.min(255, Math.round(frame[idx + 1] * (1 - a) + rgb[1] * a)));
+  frame[idx + 2] = Math.max(0, Math.min(255, Math.round(frame[idx + 2] * (1 - a) + rgb[2] * a)));
+}
+
+function drawGlowRectRgb(frame, width, height, x, y, w, h, rgb = [255, 255, 255], strength = 0.35) {
+  const layers = [
+    { pad: 7, alpha: 0.10 * strength },
+    { pad: 4, alpha: 0.16 * strength },
+    { pad: 2, alpha: 0.22 * strength }
+  ];
+  for (const layer of layers) {
+    const x0 = Math.max(0, Math.floor(x - layer.pad));
+    const y0 = Math.max(0, Math.floor(y - layer.pad));
+    const x1 = Math.min(width, Math.ceil(x + w + layer.pad));
+    const y1 = Math.min(height, Math.ceil(y + h + layer.pad));
+    for (let yy = y0; yy < y1; yy += 1) {
+      for (let xx = x0; xx < x1; xx += 1) {
+        blendRgbPixel(frame, width, height, xx, yy, rgb, layer.alpha);
+      }
+    }
+  }
+}
+
+function drawPeakDotRgb(frame, width, height, cx, cy, radius = 2, rgb = [255, 255, 255], glowStrength = 0.55) {
+  const r = Math.max(1, Math.round(radius));
+  for (let yy = -r * 3; yy <= r * 3; yy += 1) {
+    for (let xx = -r * 3; xx <= r * 3; xx += 1) {
+      const dist = Math.sqrt(xx * xx + yy * yy);
+      if (dist <= r * 3) {
+        const alpha = dist <= r ? 0.95 : Math.max(0, (1 - dist / (r * 3)) * 0.35 * glowStrength);
+        blendRgbPixel(frame, width, height, Math.round(cx + xx), Math.round(cy + yy), rgb, alpha);
+      }
+    }
+  }
+}
+
 function drawTopRoundedBarRgb(frame, width, height, x, y, w, h, radius = 9999, rgb = [255, 255, 255]) {
   const x0 = Math.max(0, Math.floor(x));
   const y0 = Math.max(0, Math.floor(y));
@@ -645,24 +687,34 @@ async function renderCustomBarsVideo(wavPath, outPath, durationSeconds, timeline
   const width = Math.max(120, ensureNumber(options.width, 560));
   const height = Math.max(40, ensureNumber(options.height, 58));
   const fps = Math.max(12, ensureNumber(options.fps, 24));
+  const wavebarConfig = layoutConfig?.wavebar || {};
+  const waveStyle = String(wavebarConfig.waveStyle || options.waveStyle || "podcast").toLowerCase();
+  const stylePreset = waveStyle === "energetic"
+    ? { boost: 1.45, spread: 1.35, glow: 1.25, up: 1.18, down: 0.92, tip: 1.18 }
+    : waveStyle === "calm"
+      ? { boost: 0.78, spread: 0.82, glow: 0.55, up: 0.82, down: 1.12, tip: 0.78 }
+      : { boost: 1.12, spread: 1.16, glow: 0.92, up: 1.08, down: 1.0, tip: 1.0 };
   const barCount = Math.max(12, ensureNumber(options.barCount, 44));
-  const barWidth = Math.max(4, ensureNumber(options.barWidth, 8));
+  const barWidth = Math.max(3, ensureNumber(options.barWidth, 8));
   const gap = Math.max(1, ensureNumber(options.gap, 4));
   const bottomPadding = Math.max(1, ensureNumber(options.bottomPadding, 2));
   const baseBarHeight = Math.max(3, ensureNumber(options.baseBarHeight, 4));
-  const idleTipMin = Math.max(0, ensureNumber(options.idleTipMin, 0));
-  const idleTipMax = Math.max(idleTipMin, ensureNumber(options.idleTipMax, 3));
-  const maxTipHeight = Math.max(baseBarHeight + 8, ensureNumber(options.maxTipHeight, 64));
-  const sampleWindowMs = Math.max(20, ensureNumber(options.smoothWindowMs, 82));
+  const idleTipMin = Math.max(0, ensureNumber(options.idleTipMin, 1));
+  const idleTipMax = Math.max(idleTipMin, ensureNumber(options.idleTipMax, 5));
+  const maxTipHeight = Math.max(baseBarHeight + 8, ensureNumber(options.maxTipHeight, 64) * stylePreset.tip);
+  const sampleWindowMs = Math.max(18, ensureNumber(options.smoothWindowMs, 42));
   const sampleWindow = Math.max(64, Math.round(sampleRate * (sampleWindowMs / 1000)));
-  const speakingBoost = Math.max(0.8, ensureNumber(options.speakingBoost, 6.8));
-  const activeSpan = Math.max(2, ensureNumber(options.activeSpan, 4));
-  const spreadBias = Math.max(0.1, Math.min(2, ensureNumber(options.spreadBias, 1.2)));
-  const smoothingUp = Math.max(0.01, Math.min(1, ensureNumber(options.smoothingUp, 0.46)));
-  const smoothingDown = Math.max(0.01, Math.min(1, ensureNumber(options.smoothingDown, 0.2)));
+  const speakingBoost = Math.max(0.8, ensureNumber(options.speakingBoost, 6.8) * stylePreset.boost);
+  const activeSpan = Math.max(2.4, ensureNumber(options.activeSpan, 5.8) * stylePreset.spread);
+  const spreadBias = Math.max(0.1, Math.min(2, ensureNumber(options.spreadBias, 0.78)));
+  const smoothingUp = Math.max(0.01, Math.min(1, ensureNumber(options.smoothingUp, 0.64) * stylePreset.up));
+  const smoothingDown = Math.max(0.01, Math.min(1, ensureNumber(options.smoothingDown, 0.18) * stylePreset.down));
   const borderRadius = Math.max(2, ensureNumber(options.borderRadius, 9999));
+  const glowStrength = Math.max(0, Math.min(2, ensureNumber(wavebarConfig.glowStrength ?? options.glowStrength, 0.75) * stylePreset.glow));
+  const peakMarker = false; // Easy Studio v33: remove peak dot marker
+  const mirrorMode = Boolean(wavebarConfig.mirrorMode ?? options.mirrorMode ?? false);
+  const reactiveSpread = Math.max(0.2, Math.min(2.5, ensureNumber(wavebarConfig.reactiveSpread ?? options.reactiveSpread, 1.0)));
 
-  const wavebarConfig = layoutConfig?.wavebar || {};
   const defaultBarColor = hexToRgb(wavebarConfig.color || "#FFFFFF", [255, 255, 255]);
   const roleAColor = hexToRgb(wavebarConfig.colorA || "#4FC3F7", [79,195,247]);
   const roleRColor = hexToRgb(wavebarConfig.colorR || "#FF8A80", [255,138,128]);
@@ -769,23 +821,43 @@ async function renderCustomBarsVideo(wavPath, outPath, durationSeconds, timeline
       const actualSubCues = Array.isArray(subtitleCues) ? subtitleCues : (subtitleCues.blocks || []);
       const activeSubtitle = actualSubCues.find(cue => t >= cue.start && t < cue.end);
       if (activeSubtitle) {
-        currentBarColor = subtitleColor;
+        switch (activeSubtitle.role) {
+          case "A":
+            currentBarColor = roleAColor;
+            break;
+          case "R":
+            currentBarColor = roleRColor;
+            break;
+          case "BOTH":
+            currentBarColor = roleBOTHColor;
+            break;
+          default:
+            currentBarColor = subtitleColor;
+        }
       }
 
       for (let barIndex = 0; barIndex < barCount; barIndex += 1) {
+        const mirrorIndex = mirrorMode ? Math.min(barIndex, barCount - 1 - barIndex) : barIndex;
         let influence = 0;
-        for (let c = 0; c < centers.length; c += 1) {
-          const dist = Math.abs(barIndex - centers[c]);
-          const spread = Math.max(0, 1 - dist / activeSpan);
+        const animatedCenters = [
+          ...centers,
+          (barCount - 1) * (0.5 + Math.sin(frameIndex * 0.032) * 0.18),
+          (barCount - 1) * (0.5 + Math.cos(frameIndex * 0.025) * 0.13)
+        ];
+        for (let c = 0; c < animatedCenters.length; c += 1) {
+          const dist = Math.abs(mirrorIndex - animatedCenters[c]);
+          const spread = Math.max(0, 1 - dist / Math.max(1, activeSpan * reactiveSpread));
           influence += Math.pow(spread, spreadBias);
         }
-        influence = Math.min(1, influence / 1.25);
+        influence = Math.min(1, 0.22 + influence / 1.9);
 
         const centerDistance = Math.abs(barIndex - (barCount - 1) / 2) / Math.max(1, barCount / 2);
-        const sideBias = 0.45 + Math.pow(centerDistance, 0.9) * 0.95;
-        const pulse = (Math.sin(frameIndex * 0.12 + barIndex * 0.48) + 1) * 0.5;
-        const idleTip = idleTipMin + pulse * Math.max(0, idleTipMin);
-        const dynamicTip = speakingStrength * influence * maxTipHeight * sideBias;
+        const sideBias = mirrorMode ? (0.86 + (1 - centerDistance) * 0.34) : (0.68 + Math.pow(centerDistance, 0.75) * 0.55);
+        const pulse = (Math.sin(frameIndex * 0.24 + barIndex * 0.62) + 1) * 0.5;
+        const secondaryPulse = (Math.sin(frameIndex * 0.11 + barIndex * 1.27) + 1) * 0.5;
+        const idleTip = idleTipMin + pulse * Math.max(1, idleTipMax - idleTipMin);
+        const livelyMotion = (0.78 + pulse * 0.18 + secondaryPulse * 0.12);
+        const dynamicTip = speakingStrength * influence * maxTipHeight * sideBias * livelyMotion;
         const targetHeight = baseBarHeight + idleTip + dynamicTip;
 
         const current = currents[barIndex];
@@ -796,7 +868,13 @@ async function renderCustomBarsVideo(wavPath, outPath, durationSeconds, timeline
         const finalBarHeight = Math.max(baseBarHeight, Math.round(next));
         const x = startX + barIndex * (barWidth + gap);
         const y = Math.max(0, height - bottomPadding - finalBarHeight);
+        if (glowStrength > 0) {
+          drawGlowRectRgb(frame, width, height, x, y, barWidth, finalBarHeight, currentBarColor, glowStrength);
+        }
         drawTopRoundedBarRgb(frame, width, height, x, y, barWidth, finalBarHeight, Math.min(borderRadius, Math.floor(barWidth / 2)), currentBarColor);
+        if (peakMarker && finalBarHeight > baseBarHeight + 5) {
+          drawPeakDotRgb(frame, width, height, x + barWidth / 2, y - 2, Math.max(1, Math.min(3, barWidth / 3)), currentBarColor, glowStrength);
+        }
       }
 
       if (settled || proc.stdin.destroyed || !proc.stdin.writable) {
@@ -1299,6 +1377,13 @@ async function _old_composeFinalMediaFiles(payload = {}) {
     speakingBoost: Number(layoutConfig?.wavebar?.speakingBoost || WAVEBAR_RENDER_CONFIG.speakingBoost),
     smoothingUp: Number(layoutConfig?.wavebar?.smoothingUp || WAVEBAR_RENDER_CONFIG.smoothingUp),
     smoothingDown: Number(layoutConfig?.wavebar?.smoothingDown || WAVEBAR_RENDER_CONFIG.smoothingDown),
+    activeSpan: Number(layoutConfig?.wavebar?.activeSpan || WAVEBAR_RENDER_CONFIG.activeSpan || 5.8),
+    spreadBias: Number(layoutConfig?.wavebar?.spreadBias || WAVEBAR_RENDER_CONFIG.spreadBias || 0.78),
+    reactiveSpread: Number(layoutConfig?.wavebar?.reactiveSpread || WAVEBAR_RENDER_CONFIG.reactiveSpread || 1.0),
+    glowStrength: Number(layoutConfig?.wavebar?.glowStrength ?? WAVEBAR_RENDER_CONFIG.glowStrength ?? 0.75),
+    peakMarker: false, // Easy Studio v33: remove peak dot marker
+    mirrorMode: Boolean(layoutConfig?.wavebar?.mirrorMode ?? WAVEBAR_RENDER_CONFIG.mirrorMode ?? false),
+    waveStyle: String(layoutConfig?.wavebar?.waveStyle || WAVEBAR_RENDER_CONFIG.waveStyle || "podcast"),
     color: String(layoutConfig?.wavebar?.color || WAVEBAR_RENDER_CONFIG.color || "#FFFFFF")
   });
 

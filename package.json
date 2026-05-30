@@ -1,6 +1,6 @@
 {
-  "name": "easy-studio-shell",
-  "version": "1.0.1",
+  "name": "easy-studio",
+  "version": "1.0.2",
   "private": true,
   "description": "Easy Studio Shell for Easy Script, Easy Voice/Video, and Easy Thumbnail",
   "main": "electron/main.cjs",
@@ -73,7 +73,12 @@
       "src/apps/easy-voice-video/electron/video/**/*",
       "node_modules/**/*"
     ],
-    "extraResources": [],
+    "extraResources": [
+      {
+        "from": "build/icons",
+        "to": "build/icons"
+      }
+    ],
     "publish": [
       {
         "provider": "github",
@@ -81,5 +86,6 @@
         "repo": "easy-studio"
       }
     ]
-  }
+  },
+  "productName": "Easy Studio"
 }

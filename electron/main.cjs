@@ -12,6 +12,33 @@ try {
 }
 
 const isDev = !app.isPackaged;
+try { app.setName('Easy Studio'); } catch {}
+
+// Easy Studio v33: normalize native dialog titles across the whole shell and app windows.
+function patchEasyStudioDialogTitles() {
+  const withEasyTitle = (options) => ({ title: 'Easy Studio', ...(options || {}) });
+  const originalOpen = dialog.showOpenDialog.bind(dialog);
+  const originalSave = dialog.showSaveDialog.bind(dialog);
+  const originalMessage = dialog.showMessageBox.bind(dialog);
+  const originalError = dialog.showErrorBox.bind(dialog);
+  dialog.showOpenDialog = function patchedShowOpenDialog(browserWindowOrOptions, maybeOptions) {
+    if (maybeOptions !== undefined) return originalOpen(browserWindowOrOptions, withEasyTitle(maybeOptions));
+    return originalOpen(withEasyTitle(browserWindowOrOptions));
+  };
+  dialog.showSaveDialog = function patchedShowSaveDialog(browserWindowOrOptions, maybeOptions) {
+    if (maybeOptions !== undefined) return originalSave(browserWindowOrOptions, withEasyTitle(maybeOptions));
+    return originalSave(withEasyTitle(browserWindowOrOptions));
+  };
+  dialog.showMessageBox = function patchedShowMessageBox(browserWindowOrOptions, maybeOptions) {
+    if (maybeOptions !== undefined) return originalMessage(browserWindowOrOptions, withEasyTitle(maybeOptions));
+    return originalMessage(withEasyTitle(browserWindowOrOptions));
+  };
+  dialog.showErrorBox = function patchedShowErrorBox(title, content) {
+    return originalError('Easy Studio', content || title || '');
+  };
+}
+patchEasyStudioDialogTitles();
+
 
 let mainWindow = null;
 const appWindows = new Map();
@@ -598,8 +625,25 @@ function getAppMeta(appId) {
 }
 
 function getIconPath(iconFile) {
-  const iconPath = path.join(__dirname, '..', 'build', 'icons', iconFile || 'easy-studio.ico');
-  return fs.existsSync(iconPath) ? iconPath : undefined;
+  const file = iconFile || 'easy-studio.ico';
+  const candidates = [];
+
+  // In packaged builds, taskbar/AppUserModelID icons are most reliable when the .ico
+  // lives outside app.asar, so build/icons is copied to process.resourcesPath.
+  if (!isDev && process.resourcesPath) {
+    candidates.push(path.join(process.resourcesPath, 'build', 'icons', file));
+  }
+
+  // Dev mode and fallback packaged mode.
+  candidates.push(path.join(__dirname, '..', 'build', 'icons', file));
+  candidates.push(path.join(app.getAppPath(), 'build', 'icons', file));
+
+  for (const iconPath of candidates) {
+    try {
+      if (iconPath && fs.existsSync(iconPath)) return iconPath;
+    } catch {}
+  }
+  return undefined;
 }
 
 function loadRenderer(win, appId = 'home') {
@@ -681,6 +725,7 @@ function createWindow() {
     title: 'Easy Studio',
     backgroundColor: '#f5f8ff',
     autoHideMenuBar: true,
+    icon: getIconPath('easy-studio.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

@@ -5,6 +5,7 @@ export type ParsedBgmMarker = {
   duration?: number;
   volume?: number;
   mode?: "once" | "loop";
+  fadeOut?: number;
   raw: string;
 };
 
@@ -47,6 +48,7 @@ export function parseBgmMarker(line: string): ParsedBgmMarker | null {
     if (lowerKey === "dur" || lowerKey === "duration") bgm.duration = parseNumber(value);
     if (lowerKey === "volume" || lowerKey === "vol") bgm.volume = parseNumber(value);
     if (lowerKey === "mode" && (value === "once" || value === "loop")) bgm.mode = value;
+    if (lowerKey === "fade" || lowerKey === "fadeout") bgm.fadeOut = parseNumber(value);
   });
 
   return bgm;

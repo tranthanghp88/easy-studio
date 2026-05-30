@@ -68,6 +68,7 @@ export function buildBgmTag(asset: Partial<BgmAsset> | null | undefined, extra?:
   duration?: number | string;
   volume?: number | string;
   mode?: "once" | "loop" | string;
+  fadeOut?: number | string;
 }) {
   const id = normalizeText(asset?.id);
   if (!id) return "#BGM: ";
@@ -76,10 +77,12 @@ export function buildBgmTag(asset: Partial<BgmAsset> | null | undefined, extra?:
   const duration = normalizeText(extra?.duration);
   const volume = normalizeText(extra?.volume ?? asset?.defaultVolume);
   const mode = normalizeText(extra?.mode);
+  const fadeOut = normalizeText(extra?.fadeOut);
 
   if (duration) parts.push(`dur=${duration}`);
   if (volume) parts.push(`volume=${volume}`);
   if (mode && (mode === "once" || mode === "loop")) parts.push(`mode=${mode}`);
+  if (fadeOut) parts.push(`fade=${fadeOut}`);
 
   return `#BGM: ${parts.join("|")}`;
 }

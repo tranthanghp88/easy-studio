@@ -239,6 +239,7 @@ export default function App() {
   const [bgmInsertVolume, setBgmInsertVolume] = useState("0.25");
   const [bgmInsertDuration, setBgmInsertDuration] = useState("");
   const [bgmInsertMode, setBgmInsertMode] = useState<"once" | "loop">("once");
+  const [bgmInsertFadeOut, setBgmInsertFadeOut] = useState("2");
 
   useEffect(() => { try { window.localStorage.setItem("voice-engine-mode", engineMode); } catch {} }, [engineMode]);
   useEffect(() => { saveLaughAssetMode(laughAssetMode); }, [laughAssetMode]);
@@ -1321,7 +1322,8 @@ const handleSelectWaveAudio = async () => {
     const tag = buildBgmTag(asset, {
       duration: bgmInsertDuration,
       volume: bgmInsertVolume || asset.defaultVolume,
-      mode: bgmInsertMode
+      mode: bgmInsertMode,
+      fadeOut: bgmInsertFadeOut
     });
     insertTextAtCursor(tag);
     setShowBgmManager(false);
@@ -1351,6 +1353,8 @@ const handleSelectWaveAudio = async () => {
       setInsertDuration={setBgmInsertDuration}
       insertMode={bgmInsertMode}
       setInsertMode={setBgmInsertMode}
+      insertFadeOut={bgmInsertFadeOut}
+      setInsertFadeOut={setBgmInsertFadeOut}
       onPreview={(asset) => {
         void previewBgmAsset(asset);
       }}

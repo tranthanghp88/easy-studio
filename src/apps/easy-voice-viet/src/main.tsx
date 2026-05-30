@@ -1,5 +1,5 @@
 import React, {useMemo, useState, useEffect, useRef} from 'react';
-import { FaBroom, FaPlay, FaMicrophone, FaMusic, FaCog, FaFolderOpen, FaKey, FaFileImport, FaFileExport, FaStethoscope, FaTrash, FaSyncAlt, FaDatabase, FaDownload, FaFileAudio, FaVolumeUp, FaCheck, FaTimes, FaListAlt, FaClipboardList, FaCloudUploadAlt } from 'react-icons/fa';
+import { FaBroom, FaPlay, FaMicrophone, FaMusic, FaCog, FaFolderOpen, FaKey, FaFileImport, FaFileExport, FaStethoscope, FaTrash, FaSyncAlt, FaDatabase, FaDownload, FaFileAudio, FaVolumeUp, FaCheck, FaTimes, FaListAlt, FaClipboardList, FaCloudUploadAlt, FaBold, FaPause } from 'react-icons/fa';
 import './style.css';
 
 declare global { interface Window { studioAPI:any } }
@@ -87,7 +87,7 @@ function App(){
   const [text,setText]=useState('');
   const [fileName,setFileName]=useState(localStorage.getItem('evsFileName') || 'Ep01');
   const [outputDir,setOutputDir]=useState(localStorage.getItem('evsOutputDir') || '');
-  const [engine,setEngine]=useState<'gemini'|'vertex'>('gemini');
+  const [engine,setEngine]=useState<'gemini'|'vertex'|'auto'>('auto');
   const [apiKey,setApiKey]=useState(localStorage.getItem('geminiKey')||'');
   const [accessToken,setAccessToken]=useState(localStorage.getItem('vertexToken')||'');
   const [projectId,setProjectId]=useState(localStorage.getItem('vertexProject')||'');
@@ -101,9 +101,13 @@ function App(){
   const [bgmType,setBgmType]=useState(presets.ads.bgmType);
   const [bgmPath,setBgmPath]=useState(localStorage.getItem('evsLastBgmPath')||'');
   const [externalAudioPath,setExternalAudioPath]=useState(localStorage.getItem('evsExternalAudioPath')||'');
+  const [bgmAudioSource,setBgmAudioSource]=useState<'latest'|'external'>('latest');
   const [bgmLibrary,setBgmLibrary]=useState<string[]>(()=>{ try{return JSON.parse(localStorage.getItem('evsBgmLibrary')||'[]')}catch{return []} });
   const [bgmVolume,setBgmVolume]=useState(()=>Number(localStorage.getItem('evsBgmVolume') || 0.18));
   const [voiceVolume,setVoiceVolume]=useState(()=>Number(localStorage.getItem('evsVoiceVolume') || 1));
+  const [bgmFadeIn,setBgmFadeIn]=useState(()=>Number(localStorage.getItem('evsBgmFadeIn') || 0));
+  const [bgmFadeOut,setBgmFadeOut]=useState(()=>Number(localStorage.getItem('evsBgmFadeOut') || 0));
+  const [bgmPreviewPlaying,setBgmPreviewPlaying]=useState(false);
   const [bgmPreviewBusy,setBgmPreviewBusy]=useState(false);
   const [showBgm,setShowBgm]=useState(false);
   const [showDict,setShowDict]=useState(false);
@@ -139,6 +143,7 @@ function App(){
   const [elapsed,setElapsed]=useState(0);
   const [chunkInfo,setChunkInfo]=useState({current:0,total:0});
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const processedText=useMemo(()=>applyWordDictionary(text,dictEntries,dictEnabled),[text,dictEntries,dictEnabled]);
   const chars=text.length;
   const processedChars=processedText.length;
@@ -154,13 +159,13 @@ function App(){
     return {total:keyList.length, active, limited, invalid, error, charsUsed, success, fail};
   },[keyList,keyStats]);
 
-  useEffect(()=>{ const p=presets[mode]; setStyle(p.style); setSpeed(p.speed); setBgmEnabled(p.bgm); setBgmType(p.bgmType); },[mode]);
+  useEffect(()=>{ const p=presets[mode]; setStyle(p.style); setSpeed(p.speed); setBgmType(p.bgmType); },[mode]);
   useEffect(()=>{ setVoiceName(voiceByGender[gender]); },[gender]);
   useEffect(()=>{ localStorage.setItem('geminiKey',apiKey); localStorage.setItem('vertexToken',accessToken); localStorage.setItem('vertexProject',projectId); localStorage.setItem('vertexLocation',location); localStorage.setItem('ttsModel',model); localStorage.setItem('evsFileName',fileName); localStorage.setItem('evsOutputDir',outputDir); localStorage.setItem('vertexJsonPath',vertexJsonPath); localStorage.setItem('vertexClientEmail',vertexClientEmail); },[apiKey,accessToken,projectId,location,model,fileName,outputDir,vertexJsonPath,vertexClientEmail]);
   useEffect(()=>{ localStorage.setItem('evsKeyStats', JSON.stringify(keyStats)); },[keyStats]);
   useEffect(()=>{ localStorage.setItem('evsKeyLogs', JSON.stringify(keyLogs)); },[keyLogs]);
   useEffect(()=>{ localStorage.setItem('evsBgmLibrary', JSON.stringify(bgmLibrary)); if(bgmPath) localStorage.setItem('evsLastBgmPath', bgmPath); },[bgmLibrary,bgmPath]);
-  useEffect(()=>{ localStorage.setItem('evsBgmVolume', String(bgmVolume)); localStorage.setItem('evsVoiceVolume', String(voiceVolume)); },[bgmVolume,voiceVolume]);
+  useEffect(()=>{ localStorage.setItem('evsBgmVolume', String(bgmVolume)); localStorage.setItem('evsVoiceVolume', String(voiceVolume)); localStorage.setItem('evsBgmFadeIn', String(bgmFadeIn)); localStorage.setItem('evsBgmFadeOut', String(bgmFadeOut)); },[bgmVolume,voiceVolume,bgmFadeIn,bgmFadeOut]);
   useEffect(()=>{ if(externalAudioPath) localStorage.setItem('evsExternalAudioPath', externalAudioPath); else localStorage.removeItem('evsExternalAudioPath'); },[externalAudioPath]);
   useEffect(()=>{ localStorage.setItem('evsDictEntries', JSON.stringify(dictEntries)); localStorage.setItem('evsDictEnabled', dictEnabled ? '1' : '0'); },[dictEntries,dictEnabled]);
   useEffect(()=>{ localStorage.setItem('evsCacheEnabled', cacheEnabled ? '1' : '0'); },[cacheEnabled]);
@@ -210,13 +215,13 @@ function App(){
     if(f){
       const pathValue = typeof f === 'string' ? f : (f.path || f.filePath || '');
       if(!pathValue) return;
-      setBgmPath(pathValue); setBgmEnabled(true);
+      setBgmPath(pathValue);
       setBgmLibrary(prev=>Array.from(new Set([pathValue,...prev])).slice(0,50));
     }
   }
   async function pickExternalAudio(){
     const f=await window.studioAPI.chooseExternalAudio?.();
-    if(f?.path){ setExternalAudioPath(f.path); setProgress(p=>[...p.slice(-5), `Đã thêm audio ngoài: ${fileNameOnly(f.path)}`]); }
+    if(f?.path){ setExternalAudioPath(f.path); setBgmAudioSource('external'); localStorage.setItem('evsExternalAudioPath', f.path); setProgress(p=>[...p.slice(-5), `Đã thêm audio ngoài: ${fileNameOnly(f.path)}`]); }
   }
   async function makeAudioUrl(filePath:string, fallbackUrl?:string){
     try{
@@ -297,9 +302,10 @@ function App(){
     setVertexJsonPath(info.path || '');
     setVertexClientEmail(info.clientEmail || '');
     if(info.projectId) setProjectId(info.projectId);
+    if(info.accessToken) setAccessToken(info.accessToken);
     setEngine('vertex');
     pushKeyLog('VERTEX','success',`Đã import Vertex JSON: ${info.clientEmail || info.projectId || info.path}`);
-    alert('Đã import service-account JSON. Project ID đã được nhận diện nếu có trong file.');
+    alert('Đã import Vertex JSON. App đã lấy Project ID và Access Token nếu file hợp lệ.');
   }
   async function testAllKeys(){
     if(!keyList.length){ alert('Chưa có key để test.'); return; }
@@ -322,6 +328,51 @@ function App(){
   }
   async function pickOutputDir(){ const f=await window.studioAPI.chooseOutputDir?.(); if(f) setOutputDir(f); }
   function cleanText(){ setText(t=>t.replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim()); }
+  function wrapSelectedText(prefix:string, suffix=prefix){
+    const el = textAreaRef.current;
+    if(!el){ return; }
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const scrollTop = el.scrollTop;
+    const scrollLeft = el.scrollLeft;
+    if(start === end){
+      alert('Hãy bôi đen đoạn cần chỉnh trước.');
+      requestAnimationFrame(()=>{ try{ el.focus(); el.scrollTop = scrollTop; el.scrollLeft = scrollLeft; }catch{} });
+      return;
+    }
+    const selected = text.slice(start,end);
+    const next = text.slice(0,start) + prefix + selected + suffix + text.slice(end);
+    setText(next);
+    requestAnimationFrame(()=>{
+      try{
+        el.focus();
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
+        el.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+      }catch{}
+    });
+  }
+  function insertPauseMarker(marker:string){
+    const el = textAreaRef.current;
+    if(!el){ return; }
+    const start = el.selectionStart ?? text.length;
+    const end = el.selectionEnd ?? start;
+    const scrollTop = el.scrollTop;
+    const scrollLeft = el.scrollLeft;
+    const selected = text.slice(start,end);
+    const insert = selected ? `${selected} ${marker} ` : ` ${marker} `;
+    const next = text.slice(0,start) + insert + text.slice(end);
+    setText(next);
+    requestAnimationFrame(()=>{
+      try{
+        el.focus();
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
+        const pos = start + insert.length;
+        el.setSelectionRange(pos,pos);
+      }catch{}
+    });
+  }
   function addDictEntry(){
     const rawFrom=dictFrom.trim();
     const to=dictTo.trim();
@@ -355,16 +406,25 @@ function App(){
   }
   async function previewBgmSetting(){
     if(bgmPreviewBusy) return;
-    const voiceForMix = lastVoiceFile || lastFile;
-    if(!voiceForMix && !externalAudioPath){ alert('Hãy bấm Tạo giọng hoặc thêm file audio ngoài trước khi nghe thử BGM.'); return; }
+    if(bgmPreviewPlaying){
+      try{ audioRef.current?.pause(); audioRef.current!.currentTime = 0; }catch{}
+      setBgmPreviewPlaying(false);
+      return;
+    }
+    const latestVoiceForMix = lastVoiceFile || lastFile;
+    const useExternal = bgmAudioSource === 'external' && !!externalAudioPath;
+    const voiceForMix = useExternal ? '' : latestVoiceForMix;
+    const externalForMix = useExternal ? externalAudioPath : '';
+    if(!voiceForMix && !externalForMix){ alert('Hãy bấm Tạo giọng hoặc thêm file audio ngoài trước khi nghe thử BGM.'); return; }
     setBgmPreviewBusy(true);
     try{
-      const res=await window.studioAPI.mixBgmPreview?.({voiceFile:voiceForMix,externalAudioFile:externalAudioPath,bgmFile:bgmEnabled?bgmPath:'',bgmVolume,voiceVolume,outputBaseName:`${safeName(fileName)}-bgm-preview`,outputDir});
+      const res=await window.studioAPI.mixBgmPreview?.({voiceFile:voiceForMix,externalAudioFile:externalForMix,bgmFile:bgmPath,bgmVolume,voiceVolume,bgmFadeIn,bgmFadeOut,outputBaseName:`${safeName(fileName)}-bgm-preview`,outputDir});
       if(!res?.filePath) throw new Error('Không tạo được file nghe thử BGM.');
       const playableUrl = await makeAudioUrl(res.filePath, res.fileUrl ? `${res.fileUrl}?t=${Date.now()}` : undefined);
       setAudio(playableUrl);
-      setLastFile(res.filePath);
+      // Không ghi đè lastFile bằng file preview BGM, để tránh lần chỉnh tiếp theo mix chồng lên file đã mix.
       setProgress(p=>[...p.slice(-5),'Đã cập nhật bản nghe thử BGM từ voice hiện tại.']);
+      setTimeout(()=>{ try{ audioRef.current?.play?.(); setBgmPreviewPlaying(true); }catch{} }, 150);
     }catch(e:any){ alert(e.message || String(e)); }
     finally{ setBgmPreviewBusy(false); }
   }
@@ -373,10 +433,10 @@ function App(){
     if(target) await window.studioAPI.openFolder(target);
   }
   async function gen(preview=false){
-    setBusy(true); setJobStart(Date.now()); setElapsed(0); setChunkInfo({current:0,total:0}); setStage('processing'); setProgress([preview?'Đang tạo bản nghe thử 20 giây...':'Đang tạo giọng đọc...']); setAudio(''); setLastVoiceFile(''); setLastMp3(''); setLastSrt(''); setLastSrtContent(''); setActiveKeyLabel(engine==='gemini' ? keyTag(keyList,currentKey) : 'VERTEX AI');
+    setBusy(true); setJobStart(Date.now()); setElapsed(0); setChunkInfo({current:0,total:0}); setStage('processing'); setProgress([preview?'Đang tạo bản nghe thử 20 giây...':'Đang tạo giọng đọc...']); setAudio(''); setLastVoiceFile(''); setLastMp3(''); setLastSrt(''); setLastSrtContent(''); setActiveKeyLabel(engine==='vertex' ? 'VERTEX AI' : engine==='auto' ? 'AUTO: Vertex + Gemini' : keyTag(keyList,currentKey));
     try{
       const textForTts = processedText;
-      const res=await window.studioAPI.generateVoice({preview,text:textForTts,originalText:text,dictEnabled,dictCount:dictEntries.length,engine,apiKey:currentKey,apiKeys:keyList,accessToken,projectId,location,model,voiceName,mode,style,speed:speedToEngine(speed),bgmPath:bgmEnabled?bgmPath:'',bgmVolume,voiceVolume, outputBaseName:safeName(fileName), outputDir, cacheEnabled});
+      const res=await window.studioAPI.generateVoice({preview,text:textForTts,originalText:text,dictEnabled,dictCount:dictEntries.length,engine,apiKey:currentKey,apiKeys:keyList,accessToken,vertexJsonPath,projectId,location,model,voiceName,mode,style,speed:speedToEngine(speed),bgmPath:'',bgmVolume,voiceVolume,bgmFadeIn,bgmFadeOut, outputBaseName:safeName(fileName), outputDir, cacheEnabled});
       if(currentKey){ setKeyStats(prev=>{ const st=statFor(prev,currentKey); return {...prev,[currentKey]:{...st,active:true,status:'active',success:st.success+1,chars:st.chars+processedChars,lastUsedAt:new Date().toISOString(),lastError:''}}; }); pushKeyLog('GENERATE','success','Tạo audio thành công', maskKey(currentKey), processedChars); }
       setLastFile(res.filePath);
       setLastVoiceFile(res.voiceFile || res.filePath);
@@ -393,11 +453,14 @@ function App(){
     finally{ setBusy(false); }
   }
   async function exportMp3(){
-    const voiceForExport = lastVoiceFile || lastFile;
-    if(!voiceForExport && !externalAudioPath){ alert('Chưa có audio để xuất MP3. Hãy Tạo giọng hoặc thêm audio ngoài.'); return; }
+    const latestVoiceForExport = lastVoiceFile || lastFile;
+    const useExternal = bgmAudioSource === 'external' && !!externalAudioPath;
+    const voiceForExport = useExternal ? '' : latestVoiceForExport;
+    const externalForExport = useExternal ? externalAudioPath : '';
+    if(!voiceForExport && !externalForExport){ alert('Chưa có audio để xuất MP3. Hãy Tạo giọng hoặc thêm audio ngoài.'); return; }
     setBusy(true); setJobStart(Date.now()); setStage('saving'); setProgress(p=>[...p.slice(-5),'Đang xuất MP3...']);
     try{
-      const res=await window.studioAPI.exportMp3WithMix?.({voiceFile:voiceForExport,externalAudioFile:externalAudioPath,bgmFile:bgmEnabled?bgmPath:'',bgmVolume,voiceVolume,outputBaseName:safeName(fileName),outputDir})
+      const res=await window.studioAPI.exportMp3WithMix?.({voiceFile:voiceForExport,externalAudioFile:externalForExport,bgmFile:bgmPath,bgmVolume,voiceVolume,bgmFadeIn,bgmFadeOut,outputBaseName:safeName(fileName),outputDir})
         || await window.studioAPI.exportMp3(voiceForExport, safeName(fileName));
       setLastMp3(res.filePath);
       let playableUrl = res.fileUrl ? `${res.fileUrl}?t=${Date.now()}` : `file:///${res.filePath.replace(/\\/g,'/')}?t=${Date.now()}`;
@@ -441,26 +504,31 @@ function App(){
           <h2>Nhập văn bản</h2>
           <div className="headTools">
             <button type="button" className={dictEnabled?'dictTopBtn enabled':'dictTopBtn'} onClick={()=>setShowDict(true)}>Từ điển đọc{replacedCount ? ` • ${replacedCount}` : ''}</button>
-            <div className={bgmEnabled?'bgmCombo enabled':'bgmCombo'}>
-              <label><input type="checkbox" checked={bgmEnabled} onChange={e=>setBgmEnabled(e.target.checked)} /> BGM nền</label>
-            </div>
             <div className="charPill">{chars.toLocaleString('vi-VN')} ký tự{processedChars!==chars ? ` → ${processedChars.toLocaleString('vi-VN')}` : ''}</div>
           </div>
         </div>
-        <textarea value={text} maxLength={12000} onChange={e=>setText(e.target.value)} placeholder="Dán nội dung cần tạo voice tại đây..." />
+        <textarea ref={textAreaRef} value={text} maxLength={12000} onChange={e=>setText(e.target.value)} placeholder="Dán nội dung cần tạo voice tại đây..." />
+        <div className="manualToneToolbar">
+          <span>Thẻ giọng đọc:</span>
+          <button type="button" className="toneTagBtn emphasis" onClick={()=>wrapSelectedText('*','*')}><FaBold /> Nhấn mạnh</button>
+          <button type="button" className="toneTagBtn stretch" onClick={()=>wrapSelectedText('~','~')}><FaVolumeUp /> Kéo dài</button>
+          <button type="button" className="toneTagBtn" onClick={()=>insertPauseMarker('||')}><FaPause /> Pause ngắn</button>
+          <button type="button" className="toneTagBtn" onClick={()=>insertPauseMarker('|||')}><FaPause /> Pause dài</button>
+          
+        </div>
         <div className="scriptMeta"><span>Ước tính: {duration}</span><span>File: {safeName(fileName)}.mp3</span><span>Preset: {modes.find(m=>m.id===mode)?.title}</span><span>Từ điển: {dictEnabled ? `${dictEntries.length} mục` : 'Tắt'}</span></div>
       </section>
 
       <div className="actionBar">
         <button className="mainCta" onClick={()=>gen(false)} disabled={busy||!text.trim()}><FaMicrophone /> Tạo giọng</button>
-        <button className="bgmSettingBtn" onClick={()=>setShowBgm(true)} disabled={!bgmEnabled}><FaMusic /> Thiết lập BGM</button>
-        <button className="settingsActionBtn" onClick={()=>setShowSettings(true)}><FaCog /> Thiết lập</button>
+        <button className="bgmSettingBtn" onClick={()=>setShowBgm(true)}><FaMusic /> Thiết lập BGM</button>
+        <button className="settingsActionBtn" onClick={()=>setShowSettings(true)}><FaCog /> Thiết lập lưu Audio</button>
         <button className="folderActionBtn" onClick={openOutput}><FaFolderOpen /> Mở thư mục</button>
         <button className="keyActionBtn" onClick={()=>setShowKeys(v=>!v)}><FaKey /> {showKeys?'Ẩn Key Manager':'Key Manager'}</button>
       </div>
 
       {showSettings && <div className="modalBackdrop" onMouseDown={()=>setShowSettings(false)}><section className="modalCard fileSettings" onMouseDown={e=>e.stopPropagation()}>
-        <div className="cardTop"><div><h2>Thiết lập xuất file</h2></div><button className="roundMini" onClick={()=>setShowSettings(false)}>×</button></div>
+        <div className="cardTop"><div><h2>Thiết lập lưu Audio</h2></div><button className="roundMini" onClick={()=>setShowSettings(false)}>×</button></div>
         <label className="fieldLabel">Tên file</label>
         <input className="nameInput" value={fileName} onChange={e=>setFileName(e.target.value)} placeholder="Ví dụ: Ep01-001" />
         <label className="fieldLabel">Thư mục lưu</label>
@@ -470,14 +538,16 @@ function App(){
 
       {showBgm && <div className="modalBackdrop" onMouseDown={()=>setShowBgm(false)}><section className="modalCard bgmModal" onMouseDown={e=>e.stopPropagation()}>
         <div className="cardTop"><div><h2>Thiết lập BGM</h2></div><button className="roundMini" onClick={()=>setShowBgm(false)}>×</button></div>
-        <div className="settingsGrid bgmSettingsGrid">
-          <label className="span2">BGM Preset<select value={bgmType} onChange={e=>setBgmType(e.target.value)}>{bgmOptions.map(x=><option key={x}>{x}</option>)}</select></label>
-          <label>Âm lượng Voice <b>{Math.round(voiceVolume*100)}%</b><input type="range" min="0.5" max="1.5" step="0.05" value={voiceVolume} onChange={e=>setVoiceVolume(Number(e.target.value))}/></label>
+        <div className="settingsGrid bgmSettingsGrid bgmSettingsGridV2">
+          <label>BGM Preset<select value={bgmType} onChange={e=>setBgmType(e.target.value)}>{bgmOptions.map(x=><option key={x}>{x}</option>)}</select></label>
+          <label>Fade In BGM <b>{bgmFadeIn}s</b><input type="range" min="0" max="8" step="0.5" value={bgmFadeIn} onChange={e=>setBgmFadeIn(Number(e.target.value))}/></label>
+          <label>Fade Out BGM <b>{bgmFadeOut}s</b><input type="range" min="0" max="8" step="0.5" value={bgmFadeOut} onChange={e=>setBgmFadeOut(Number(e.target.value))}/></label>
+          <label>Âm lượng Audio <b>{Math.round(voiceVolume*100)}%</b><input type="range" min="0.5" max="1.5" step="0.05" value={voiceVolume} onChange={e=>setVoiceVolume(Number(e.target.value))}/></label>
           <label>Âm lượng BGM <b>{Math.round(bgmVolume*100)}%</b><input type="range" min="0" max="0.7" step="0.01" value={bgmVolume} onChange={e=>setBgmVolume(Number(e.target.value))}/></label>
         </div>
-        <div className="externalAudioBox"><h3>Audio ngoài</h3><div className="externalAudioRow"><span title={externalAudioPath}>{externalAudioPath ? fileNameOnly(externalAudioPath) : 'Chưa thêm audio ngoài'}</span><button className="iconBtn audioAddBtn" onClick={pickExternalAudio}><FaFileAudio /> Thêm audio ngoài</button>{externalAudioPath && <button className="iconBtn removeBtn" onClick={()=>setExternalAudioPath('')}><FaTimes /> Bỏ chọn</button>}</div></div>
-        <div className="bgmLibrary"><h3>Danh sách BGM đã lưu</h3>{bgmLibrary.length===0?<p>Chưa có BGM nào. Bấm “Thêm BGM từ máy” để lưu vào list.</p>:bgmLibrary.map((p,i)=><div className={p===bgmPath?'bgmItem active':'bgmItem'} key={p+i}><span title={fileNameOnly(p)}>{fileNameOnly(p)}</span><button onClick={()=>{setBgmPath(p); setBgmEnabled(true);}}>Chọn</button><button onClick={()=>setBgmLibrary(prev=>prev.filter(x=>x!==p))}>Xóa</button></div>)}</div>
-        <div className="rowBtns bgmActionRow"><button className="iconBtn bgmAddBtn" onClick={pickBgm}><FaMusic /> Thêm BGM từ máy</button><button className="iconBtn removeBtn" onClick={()=>setBgmPath('')}><FaTimes /> Bỏ chọn BGM</button><button className="iconBtn previewBtn" onClick={previewBgmSetting} disabled={bgmPreviewBusy || busy || (!lastVoiceFile && !lastFile && !externalAudioPath)}><FaVolumeUp /> {bgmPreviewBusy?'Đang nghe thử...':'Nghe thử'}</button><button className="iconBtn folderActionBtn" onClick={()=>window.studioAPI?.openBgmFolder?.()}><FaFolderOpen /> Mở thư mục BGM</button><button className="primarySoft" onClick={()=>setShowBgm(false)}>Xong</button></div>
+        <div className="externalAudioBox"><h3>Nguồn audio để ghép BGM</h3><div className="externalAudioRow sourcePickRow"><span title={bgmAudioSource==='external' ? externalAudioPath : (lastVoiceFile || lastFile)}>{bgmAudioSource==='external' ? (externalAudioPath ? fileNameOnly(externalAudioPath) : 'Chưa thêm audio ngoài') : ((lastVoiceFile || lastFile) ? fileNameOnly(lastVoiceFile || lastFile) : 'Chưa có audio mới nhất')}</span><button className={`iconBtn latestAudioBtn ${bgmAudioSource==='latest'?'active':''}`} onClick={()=>setBgmAudioSource('latest')}><FaMicrophone /> Audio vừa gen</button><button className={`iconBtn audioAddBtn ${bgmAudioSource==='external'?'active':''}`} onClick={pickExternalAudio}><FaFileAudio /> Audio ngoài</button></div></div>
+        <div className="bgmLibrary compactBgmLibrary"><h3>Danh sách BGM đã lưu</h3>{bgmLibrary.length===0?<p>Chưa có BGM nào. Bấm “Thêm BGM từ máy” để lưu vào list.</p>:<div className="bgmListScroll">{bgmLibrary.map((p,i)=><div className={p===bgmPath?'bgmItem active':'bgmItem'} key={p+i}><span title={fileNameOnly(p)}>{fileNameOnly(p)}</span><button className="deleteText" onClick={()=>setBgmLibrary(prev=>prev.filter(x=>x!==p))}>Xóa</button><label className="bgmCheckWrap" title="Chọn BGM"><input type="checkbox" checked={p===bgmPath} onChange={()=>{setBgmPath(p);}} /></label></div>)}</div>}</div>
+        <div className="rowBtns bgmActionRow"><button className="iconBtn bgmAddBtn" onClick={pickBgm}><FaMusic /> Thêm BGM từ máy</button><button className="iconBtn previewBtn" onClick={previewBgmSetting} disabled={bgmPreviewBusy || busy || (bgmAudioSource==='external' ? !externalAudioPath : (!lastVoiceFile && !lastFile))}><FaVolumeUp /> {bgmPreviewBusy?'Đang xử lý...':bgmPreviewPlaying?'Dừng':'Nghe thử'}</button><button className="iconBtn folderActionBtn" onClick={()=>window.studioAPI?.openBgmFolder?.()}><FaFolderOpen /> Mở thư mục BGM</button><button className="primarySoft iconBtn exportAudioBtn" onClick={exportMp3} disabled={busy||(bgmAudioSource==='external' ? !externalAudioPath : (!lastVoiceFile&&!lastFile))}><FaFileAudio /> Xuất MP3</button><button className="primarySoft" onClick={()=>setShowBgm(false)}>Xong</button></div>
       </section></div>}
 
       {showDict && <div className="modalBackdrop" onMouseDown={()=>setShowDict(false)}><section className="modalCard dictModal" onMouseDown={e=>e.stopPropagation()}>
@@ -490,11 +560,11 @@ function App(){
       </section></div>}
 
       {showKeys && <div className="keyModalBackdrop" onMouseDown={()=>setShowKeys(false)}><section className="settingsCard keyManagerPanel englishKeyManager englishKeyManagerModal" onMouseDown={e=>e.stopPropagation()}>
-        <div className="keyHeader"><div><h2>Key Manager</h2></div><div className="lastKeyBox"><span>Key đang dùng gần nhất</span><b>{engine==='gemini' ? keyTag(keyList,currentKey) : 'VERTEX AI'}</b></div><button className="plainBtn closeTop" onClick={()=>setShowKeys(false)}>✖ Đóng</button></div>
+        <div className="keyHeader"><div><h2>Key Manager</h2></div><div className="lastKeyBox"><span>Key đang dùng gần nhất</span><b>{engine==='vertex' ? 'VERTEX AI' : engine==='auto' ? 'AUTO: Vertex + Gemini' : keyTag(keyList,currentKey)}</b></div><button className="plainBtn closeTop" onClick={()=>setShowKeys(false)}>✖ Đóng</button></div>
         <div className="keyTabs"><button className={keyTab==='overview'?'active':''} onClick={()=>setKeyTab('overview')}><FaClipboardList /> Tổng quan</button><button className={keyTab==='keys'?'active':''} onClick={()=>setKeyTab('keys')}><FaKey /> Keys</button><button className={keyTab==='vertex'?'active':''} onClick={()=>setKeyTab('vertex')}><FaDatabase /> Vertex Profile</button></div>
         {keyTab==='overview' && <>
           <div className="statsRow"><div><span>Tổng key</span><b>{keySummary.total}</b></div><div className="green"><span>Active</span><b>{keySummary.active}</b></div><div className="yellow"><span>Limited</span><b>{keySummary.limited}</b></div><div className="red"><span>Invalid</span><b>{keySummary.invalid}</b></div><div><span>Error</span><b>{keySummary.error}</b></div><div className="blue"><span>Tổng ký tự</span><b>{keySummary.charsUsed}</b></div></div>
-          <div className="cacheCard"><div className="cacheHead"><h3>TTS Cache</h3><div className="rowBtns tight"><label className="cacheToggle"><input type="checkbox" checked={cacheEnabled} onChange={e=>setCacheEnabled(e.target.checked)} /> Bật cache</label><button className="iconBtn refreshBtn" onClick={()=>window.studioAPI?.getCacheInfo?.().then(setCacheInfo)}><FaSyncAlt /> Làm mới cache</button><button className="iconBtn dangerBtn" onClick={()=>{ if(confirm('Xóa toàn bộ cache TTS? Lần gen sau sẽ gọi API lại.')) window.studioAPI?.clearCache?.().then(()=>window.studioAPI?.getCacheInfo?.().then(setCacheInfo))}}><FaTrash /> Xóa cache</button><button className="primarySoft iconBtn folderActionBtn" onClick={()=>cacheInfo?.dir && window.studioAPI.openFolder(cacheInfo.dir)}><FaFolderOpen /> Mở thư mục cache</button><button className="iconBtn downloadBtn" onClick={exportKeyLogs}><FaDownload /> Tải Log</button><button className="iconBtn dangerBtn" onClick={()=>setKeyLogs([])}><FaTrash /> Clear log</button></div></div><div className="statsRow small"><div><span>Chunk cache</span><b>{cacheInfo?.chunkCount ?? cacheInfo?.count ?? 0}</b></div><div><span>Full cache</span><b>{cacheInfo?.finalCount ?? 0}</b></div><div className="blue"><span>Dung lượng</span><b>{cacheInfo?.sizeText ?? '-'}</b></div><div className="green"><span>Success</span><b>{keySummary.success}</b></div><div className="yellow"><span>Fail</span><b>{keySummary.fail}</b></div></div><p className="cacheNote">Cache voice tự dùng lại khi text + voice + preset + speed + model giống nhau. BGM được mix local sau nên đổi BGM không tốn quota API.</p></div>
+          <div className="cacheCard"><div className="cacheHead"><h3>TTS Cache</h3><div className="rowBtns tight"><label className="cacheToggle"><input type="checkbox" checked={cacheEnabled} onChange={e=>setCacheEnabled(e.target.checked)} /> Bật cache</label><button className="iconBtn refreshBtn" onClick={()=>window.studioAPI?.getCacheInfo?.().then(setCacheInfo)}><FaSyncAlt /> Làm mới cache</button><button className="iconBtn dangerBtn" onClick={()=>{ if(confirm('Xóa toàn bộ cache TTS? Lần gen sau sẽ gọi API lại.')) window.studioAPI?.clearCache?.().then(()=>window.studioAPI?.getCacheInfo?.().then(setCacheInfo))}}><FaTrash /> Xóa cache</button><button className="primarySoft iconBtn folderActionBtn" onClick={()=>cacheInfo?.dir && window.studioAPI.openFolder(cacheInfo.dir)}><FaFolderOpen /> Mở thư mục cache</button><button className="iconBtn downloadBtn" onClick={exportKeyLogs}><FaDownload /> Tải Log</button><button className="iconBtn dangerBtn" onClick={()=>setKeyLogs([])}><FaTrash /> Clear log</button></div></div><div className="statsRow small"><div><span>Chunk cache</span><b>{cacheInfo?.chunkCount ?? cacheInfo?.count ?? 0}</b></div><div><span>Full cache</span><b>{cacheInfo?.finalCount ?? 0}</b></div><div className="blue"><span>Dung lượng</span><b>{cacheInfo?.sizeText ?? '-'}</b></div><div className="green"><span>Success</span><b>{keySummary.success}</b></div><div className="yellow"><span>Fail</span><b>{keySummary.fail}</b></div></div></div>
         </>}
         {keyTab==='keys' && <div className="keyDashboardBox">
           <div className="keyDashHead"><h3>Danh sách Key</h3><div className="keyDashActions"><button className="iconBtn importBtn" onClick={importKeys}><FaFileImport /> Import</button><button className="iconBtn exportBtn" onClick={exportKeys}><FaFileExport /> Export</button><button className="primarySoft iconBtn testBtn" onClick={testAllKeys}><FaStethoscope /> Test all Keys</button><button className="iconBtn dangerBtn" onClick={deleteSelectedOrBadKeys}><FaTrash /> Xóa keys</button></div><div className="keyDashControls"><input value={keySearch} onChange={e=>setKeySearch(e.target.value)} placeholder="🔍 Tìm theo KEY_01, lỗi, status..."/><select><option>Tất cả</option><option>Active</option><option>Limited</option><option>Invalid</option><option>Error</option></select><select><option>10/trang</option><option>20/trang</option><option>50/trang</option></select></div></div>
@@ -503,14 +573,14 @@ function App(){
         </div>}
         {keyTab==='vertex' && <div className="vertexProfileBox">
           <div className="cacheHead"><h3>Vertex + Gemini Key Pool</h3><div className="rowBtns tight"><button className="iconBtn importBtn" onClick={importVertexJson}><FaCloudUploadAlt /> Import service-account JSON</button><button className="iconBtn refreshBtn" onClick={()=>setKeyTab('vertex')}><FaSyncAlt /> Làm mới</button></div></div>
-          <div className="poolBox"><h3>Xoay key TTS</h3><p>Bật/tắt nguồn tạo voice. Auto sẽ ưu tiên Vertex, nếu lỗi quota sẽ chuyển sang Gemini key pool.</p><div className="poolGrid"><label><b>Vertex AI</b><span>Service account / quota chính</span><input type="checkbox" checked={engine==='vertex'} onChange={()=>setEngine(engine==='vertex'?'gemini':'vertex')} /></label><label><b>Gemini API Keys</b><span>Danh sách key dự phòng</span><input type="checkbox" checked={engine==='gemini'} onChange={()=>setEngine(engine==='gemini'?'vertex':'gemini')} /></label></div></div>
-          <div className="settingsGrid vertexGrid"><label>Vertex Access Token<input value={accessToken} onChange={e=>setAccessToken(e.target.value)} type="password"/></label><label>Vertex Project ID<input value={projectId} onChange={e=>setProjectId(e.target.value)}/></label><label>Vertex Location<input value={location} onChange={e=>setLocation(e.target.value)}/></label><label>Model<select value={model} onChange={e=>setModel(e.target.value)}>{modelOptions.map(x=><option key={x}>{x}</option>)}</select></label><label>Voice<select value={voiceName} onChange={e=>setVoiceName(e.target.value)}>{voiceOptions.map(x=><option key={x}>{x}</option>)}</select></label><label>Engine<select value={engine} onChange={e=>setEngine(e.target.value as any)}><option value="gemini">Gemini</option><option value="vertex">Vertex AI</option></select></label></div>
-          <div className="vertexTable"><div><b>Profile</b><b>Project</b><b>Location</b><b>Action</b></div><div><span>{engine==='vertex'?'VERTEX AI':'Gemini Pool'}</span><span>{projectId || '-'}</span><span>{location || '-'}</span><button className="primarySoft iconBtn doneBtn"><FaCheck /> Đang dùng</button></div></div>
+          <div className="poolBox"><h3>Xoay key TTS</h3><div className="poolGrid"><label><b>Vertex AI</b><span>Service account / quota chính</span><input type="checkbox" checked={engine==='vertex'||engine==='auto'} onChange={(e)=>setEngine(e.target.checked ? (engine==='gemini'?'auto':'vertex') : (engine==='auto'?'gemini':'gemini'))} /></label><label><b>Gemini API Keys</b><span>Danh sách key dự phòng</span><input type="checkbox" checked={engine==='gemini'||engine==='auto'} onChange={(e)=>setEngine(e.target.checked ? (engine==='vertex'?'auto':'gemini') : (engine==='auto'?'vertex':'vertex'))} /></label></div></div>
+          <div className="settingsGrid vertexGrid"><label>Vertex Access Token<input value={accessToken} onChange={e=>setAccessToken(e.target.value)} type="password"/></label><label>Vertex Project ID<input value={projectId} onChange={e=>setProjectId(e.target.value)}/></label><label>Vertex Location<input value={location} onChange={e=>setLocation(e.target.value)}/></label><label>Model<select value={model} onChange={e=>setModel(e.target.value)}>{modelOptions.map(x=><option key={x}>{x}</option>)}</select></label><label>Voice<select value={voiceName} onChange={e=>setVoiceName(e.target.value)}>{voiceOptions.map(x=><option key={x}>{x}</option>)}</select></label><label>Engine<select value={engine} onChange={e=>setEngine(e.target.value as any)}><option value="auto">Auto: Vertex + Gemini</option><option value="gemini">Gemini</option><option value="vertex">Vertex AI</option></select></label></div>
+          <div className="vertexTable"><div><b>Profile</b><b>Project</b><b>Location</b><b>Action</b></div><div><span>{engine==='vertex'?'VERTEX AI':engine==='auto'?'AUTO: Vertex + Gemini':'Gemini Pool'}</span><span>{projectId || '-'}</span><span>{location || '-'}</span><button className="primarySoft iconBtn doneBtn"><FaCheck /> Đang dùng</button></div></div>
         </div>}
       </section></div>}
 
       {audio && <section className="previewPanel cleanPreview">
-        <audio key={audio.slice(0,80)} ref={audioRef} controls preload="auto" src={audio} onError={()=>alert('Player không đọc được audio preview. Hãy bấm Mở thư mục để kiểm tra file WAV, hoặc Generate mới.')} />
+        <audio key={audio.slice(0,80)} ref={audioRef} controls preload="auto" src={audio} onPause={()=>setBgmPreviewPlaying(false)} onEnded={()=>setBgmPreviewPlaying(false)} onPlay={()=>setBgmPreviewPlaying(true)} onError={()=>alert('Player không đọc được audio preview. Hãy bấm Mở thư mục để kiểm tra file WAV, hoặc Generate mới.')} />
         <div className="rowBtns"><button className="primarySoft iconBtn exportAudioBtn" onClick={exportMp3} disabled={busy||!lastFile}><FaFileAudio /> Xuất MP3</button><button className="iconBtn exportBtn" onClick={exportSrt} disabled={busy||(!lastSrt&&!lastSrtContent)}><FaFileExport /> Xuất SRT</button></div>
       </section>}
 
@@ -518,7 +588,7 @@ function App(){
         <div className="progressHeader"><h2>Tiến trình xử lý audio</h2><span className="percent"><i/> {Math.round(progressPercent)}%</span></div>
         <div className="stepRow"><div className={stage==='processing'||stage==='saving'||stage==='done'?'active':''}>1. Processing</div><div className={stage==='saving'||stage==='done'?'active':''}>2. Saving</div><div className={stage==='done'?'active':''}>3. Done</div></div>
         <div className="bar"><span style={{width:`${progressPercent}%`}} /></div>
-        <div className="infoGrid"><div>Chunk: <b>{chunkInfo.total ? `${chunkInfo.current}/${chunkInfo.total}` : '0/0'}</b></div><div>Thời gian chạy: <b>{formatTime(elapsed)}</b></div><div>Key đang dùng: <b>{activeKeyLabel || (engine==='gemini' ? keyTag(keyList,currentKey) : 'VERTEX AI')}</b></div><div>Cache: <b>{cacheEnabled ? 'Bật' : 'Tắt'}</b></div></div>
+        <div className="infoGrid"><div>Chunk: <b>{chunkInfo.total ? `${chunkInfo.current}/${chunkInfo.total}` : '0/0'}</b></div><div>Thời gian chạy: <b>{formatTime(elapsed)}</b></div><div>Key đang dùng: <b>{activeKeyLabel || (engine==='vertex' ? 'VERTEX AI' : engine==='auto' ? 'AUTO: Vertex + Gemini' : keyTag(keyList,currentKey))}</b></div><div>Cache: <b>{cacheEnabled ? 'Bật' : 'Tắt'}</b></div></div>
       </section>
     </main>
   </div>

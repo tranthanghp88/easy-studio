@@ -579,6 +579,35 @@ export default function PresetPanel({
         .sort((a, b) => a.primaryTag.localeCompare(b.primaryTag)),
     [visibleManualPresets]
   );
+  const detailPreset = useMemo(() => {
+    const id = expandedPresetIds[0];
+    return id ? blockPresets.find((preset) => preset.id === id) || null : null;
+  }, [blockPresets, expandedPresetIds]);
+
+  const handleSelectPresetForDelete = (presetId: string) => {
+    setSelectedDeletePresetIds((prev) => (prev.includes(presetId) ? [] : [presetId]));
+  };
+
+  const handleDeleteCheckedPreset = () => {
+    const presetId = selectedDeletePresetIds[0];
+    if (!presetId) {
+      alert("Hãy tick chọn preset cần xóa trước.");
+      return;
+    }
+    const preset = blockPresets.find((item) => item.id === presetId);
+    const label = preset?.primaryTag || preset?.name || "preset";
+    if (!confirm(`Xóa ${label}?`)) return;
+    if (onDeleteSelectedPresets) {
+      onDeleteSelectedPresets([presetId]);
+      setSelectedDeletePresetIds([]);
+      setExpandedPresetIds((prev) => prev.filter((id) => id !== presetId));
+      return;
+    }
+    onLoadPreset(presetId);
+    setTimeout(() => onDeletePreset(), 0);
+    setSelectedDeletePresetIds([]);
+  };
+
 
   const exportablePresets = useMemo(
     () => savedPresets.filter((preset) => !preset.hiddenInMainDropdown && !preset.importedFromVoice),
@@ -682,48 +711,66 @@ export default function PresetPanel({
 
         {showPresetPanel ? (
           <div className="mt-4 space-y-4">
-            <div className="space-y-3">
+            <div className="presetCompactPanel rounded-2xl border border-slate-200 bg-slate-50 p-3">
               {blockPresets.length ? (
-                blockPresets.map((preset) => {
-                  const isExpanded = expandedPresetIds.includes(preset.id);
-                  return (
-                    <div key={preset.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                      <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => togglePresetExpanded(preset.id)}
-                          className="inline-flex min-w-0 flex-1 items-center gap-2 text-left"
-                        >
-                          <span className="text-slate-500">{isExpanded ? <FaChevronUp /> : <FaChevronDown />}</span>
-                          <span className="truncate text-base font-semibold text-slate-900">{preset.primaryTag}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => openEditPreset(preset)}
-                          className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100"
-                        >
-                          Sửa
-                        </button>
-                      </div>
-
-                      {isExpanded ? (
-                        <div className="border-t border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                            <div><span className="font-medium text-slate-800">Voice:</span> {preset.voiceName || "Podcast mặc định"}</div>
-                            <div><span className="font-medium text-slate-800">Pause:</span> {formatNumber(preset.speakerSettings?.blockPause ?? 0)}s giữa block</div>
-                            <div><span className="font-medium text-slate-800">Format:</span> {preset.format || "podcast"}</div>
-                            <div><span className="font-medium text-slate-800">Loại giọng:</span> {voiceTypeLabel(preset.voiceType)}</div>
-                            <div className="md:col-span-2"><span className="font-medium text-slate-800">Voice style:</span> {preset.speakerSettings?.A?.style || "-"}</div>
-                            <div className="md:col-span-2"><span className="font-medium text-slate-800">Speaker setup:</span> A speed {formatNumber(preset.speakerSettings?.A?.speed ?? 1)} / R speed {formatNumber(preset.speakerSettings?.R?.speed ?? 1)}</div>
-                          </div>
+                <>
+                  <div className="presetCompactList">
+                    {blockPresets.map((preset) => {
+                      const isDetail = detailPreset?.id === preset.id;
+                      const isChecked = selectedDeletePresetIds.includes(preset.id);
+                      return (
+                        <div key={preset.id} className={`presetCompactRow ${isDetail ? "active" : ""}`}>
+                          <button
+                            type="button"
+                            className="presetCompactName"
+                            onClick={() => onLoadPreset(preset.id)}
+                            title={preset.primaryTag}
+                          >
+                            {preset.primaryTag}
+                          </button>
+                          <button
+                            type="button"
+                            className="presetDetailBtn"
+                            onClick={() => setExpandedPresetIds([preset.id])}
+                          >
+                            Chi tiết
+                          </button>
+                          <button
+                            type="button"
+                            className="presetEditBtn"
+                            onClick={() => openEditPreset(preset)}
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            type="button"
+                            className={`presetTickBtn ${isChecked ? "checked" : ""}`}
+                            onClick={() => handleSelectPresetForDelete(preset.id)}
+                            title="Tick chọn preset"
+                          >
+                            {isChecked ? "✓" : "○"}
+                          </button>
                         </div>
-                      ) : null}
+                      );
+                    })}
+                  </div>
+
+                  {detailPreset ? (
+                    <div className="presetCompactDetail">
+                      <div className="presetDetailTitle">Chi tiết {detailPreset.primaryTag}</div>
+                      <div className="presetDetailGrid">
+                        <div><span>Voice:</span> {detailPreset.voiceName || "Podcast mặc định"}</div>
+                        <div><span>Pause:</span> {formatNumber(detailPreset.speakerSettings?.blockPause ?? 0)}s giữa block</div>
+                        <div><span>Format:</span> {detailPreset.format || "podcast"}</div>
+                        <div><span>Loại giọng:</span> {voiceTypeLabel(detailPreset.voiceType)}</div>
+                        <div className="wide"><span>Voice style:</span> {detailPreset.speakerSettings?.A?.style || "-"}</div>
+                        <div className="wide"><span>Speaker setup:</span> A speed {formatNumber(detailPreset.speakerSettings?.A?.speed ?? 1)} / R speed {formatNumber(detailPreset.speakerSettings?.R?.speed ?? 1)}</div>
+                      </div>
                     </div>
-                  );
-                })
+                  ) : null}
+                </>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
                   Chưa có preset block. Bấm "Tạo Preset" để tạo preset mới.
                 </div>
               )}
@@ -742,12 +789,14 @@ export default function PresetPanel({
 
                 <button
                   type="button"
-                  onClick={() => onPreviewVoice?.()}
-                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-700"
+                  onClick={handleDeleteCheckedPreset}
+                  disabled={!selectedDeletePresetIds.length}
+                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-rose-700 disabled:opacity-50"
                 >
-                  <FaPlay />
-                  Nghe thử
+                  <FaTrash />
+                  Xóa Preset
                 </button>
+
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

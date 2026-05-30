@@ -425,7 +425,7 @@ export function buildCompositionPlan(params: {
           volume: Number.isFinite(Number(bgmMarker.volume)) ? Number(bgmMarker.volume) : Number(asset.defaultVolume || 0.25),
           loop: String(bgmMarker.mode || "").toLowerCase() === "loop",
           duckVolume: 0.08, // Default value, can be configurable
-          fadeOut: 0.35 // Default value, can be configurable
+          fadeOut: Number.isFinite(Number(bgmMarker.fadeOut)) ? Math.max(0, Number(bgmMarker.fadeOut)) : 2
         });
       });
     }
